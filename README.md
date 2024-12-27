@@ -41,14 +41,14 @@ git clone https://github.com/kalibbalajohnson/Poultry-Management-System.git
 
 - npm run dev
 
-### Web App Setup
+### Web-App Setup
 - cd Web-App
 
 - npm install
 
 - npm run dev
 
-### AI Model Setup
+### AI-Model Setup
 - cd AI-Model
 
 - python -m venv venv
@@ -59,7 +59,7 @@ git clone https://github.com/kalibbalajohnson/Poultry-Management-System.git
 
 - uvicorn main:app --reload
 
-### Mobile App Setup
+### Mobile-App Setup
 - cd Mobile-App
 
 - flutter pub get
