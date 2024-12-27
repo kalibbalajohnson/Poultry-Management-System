@@ -9,12 +9,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "mocha --require @babel/register 'src/**/*.test.js'",
-    "prepare": "husky",
     "prettier": "prettier --write */**/*.{js,jsx,json,ts,tsx,scss,css,md}",
     "lint": "eslint .",
-    "lint-staged": "lint-staged",
-    "lint:fix": "eslint . --fix",
-    "lint:strict": "eslint '*/**/*.{js,jsx,ts,tsx}'"
+    "lint-staged": "lint-staged"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [

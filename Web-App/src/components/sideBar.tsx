@@ -1,14 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
 const Sidebar = () => {
   return (
-    <aside className="w-64 bg-white shadow text-sm p-6 ">
+    <aside className="w-64 bg-white p-6 text-sm shadow">
       <nav>
         <ul className="space-y-2">
           <li>
             <Link
               to="/dashboard"
-              className="block py-2 px-3 rounded-md bg-green-700 text-white font-medium"
+              className="block rounded-md bg-green-700 px-3 py-2 font-medium text-white"
             >
               Dashboard
             </Link>
@@ -16,7 +16,7 @@ const Sidebar = () => {
           <li>
             <Link
               to="/stock"
-              className="block py-2 px-3 rounded hover:bg-green-100 text-gray-700 font-medium"
+              className="block rounded px-3 py-2 font-medium text-gray-700 hover:bg-green-100"
             >
               Stock Management
             </Link>
@@ -24,7 +24,7 @@ const Sidebar = () => {
           <li>
             <Link
               to="/dashboard"
-              className="block py-2 px-3 rounded hover:bg-green-100 text-gray-700 font-medium"
+              className="block rounded px-3 py-2 font-medium text-gray-700 hover:bg-green-100"
             >
               Disease
             </Link>
@@ -32,7 +32,7 @@ const Sidebar = () => {
           <li>
             <Link
               to="/dashboard"
-              className="block py-2 px-3 rounded hover:bg-green-100 text-gray-700 font-medium"
+              className="block rounded px-3 py-2 font-medium text-gray-700 hover:bg-green-100"
             >
               View Records
             </Link>
@@ -40,7 +40,7 @@ const Sidebar = () => {
           <li>
             <Link
               to="/dashboard"
-              className="block py-2 px-3 rounded hover:bg-green-100 text-gray-700 font-medium"
+              className="block rounded px-3 py-2 font-medium text-gray-700 hover:bg-green-100"
             >
               Settings
             </Link>

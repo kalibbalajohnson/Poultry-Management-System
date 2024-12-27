@@ -1,25 +1,24 @@
-import Navbar2 from "../components/navBar2";
-import Sidebar from "../components/sideBar";
+import Navbar2 from '../components/navBar2';
+import Sidebar from '../components/sideBar';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger
+} from '@/components/ui/dialog';
 
 function Stock() {
-
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-green-100 to-green-50 text-gray-800 font-sans">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-green-100 to-green-50 font-sans text-gray-800">
       <Navbar2 />
       <div className="flex flex-grow">
         <Sidebar />
-        <main className="flex-grow p-6 container mx-auto overflow-y-auto">
+        <main className="container mx-auto flex-grow overflow-y-auto p-6">
           <Dialog>
             <DialogTrigger>
-              <button className="bg-green-700 text-sm font-semibold rounded-full text-white px-4 py-2 mb-4 hover:bg-green-800 transition duration-200">
+              <button className="mb-4 rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
                 Add Stock
               </button>
             </DialogTrigger>
@@ -37,7 +36,7 @@ function Stock() {
                     <div>
                       <label
                         htmlFor="numberOfHens"
-                        className="block text-sm font-medium text-gray-600 mb-2"
+                        className="mb-2 block text-sm font-medium text-gray-600"
                       >
                         Number of Hens
                       </label>
@@ -46,13 +45,13 @@ function Stock() {
                         id="numberOfHens"
                         name="numberOfHens"
                         required
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                        className="w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="numberOfEggs"
-                        className="block text-sm font-medium text-gray-600 mb-2"
+                        className="mb-2 block text-sm font-medium text-gray-600"
                       >
                         Number of Eggs
                       </label>
@@ -61,14 +60,14 @@ function Stock() {
                         id="numberOfEggs"
                         name="numberOfEggs"
                         required
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                        className="w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
                       />
                     </div>
                   </div>
                   <div>
                     <label
                       htmlFor="quantityOfFood"
-                      className="block text-sm font-medium text-gray-600 mb-2"
+                      className="mb-2 block text-sm font-medium text-gray-600"
                     >
                       Quantity of Food (kg)
                     </label>
@@ -77,12 +76,12 @@ function Stock() {
                       id="quantityOfFood"
                       name="quantityOfFood"
                       required
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                      className="w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-3 px-4 bg-green-700 text-white font-semibold rounded-lg hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105"
+                    className="w-full transform rounded-lg bg-green-700 px-4 py-3 font-semibold text-white transition duration-200 ease-in-out hover:scale-105 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
                   >
                     Add Record
                   </button>
@@ -91,29 +90,29 @@ function Stock() {
             </DialogContent>
           </Dialog>
 
-          <section className="bg-white shadow rounded-lg p-8">
-            <h2 className="text-2xl font-semibold mb-6 text-green-700 border-b pb-4 border-green-200">
+          <section className="rounded-lg bg-white p-8 shadow">
+            <h2 className="mb-6 border-b border-green-200 pb-4 text-2xl font-semibold text-green-700">
               Farm Stock
             </h2>
             <table className="w-full table-auto border-collapse">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b">
+                  <th className="border-b px-4 py-3 text-left text-sm font-semibold text-gray-700">
                     Item
                   </th>
-                  <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b">
+                  <th className="border-b px-4 py-3 text-left text-sm font-semibold text-gray-700">
                     Quantity
                   </th>
-                  <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b">
+                  <th className="border-b px-4 py-3 text-left text-sm font-semibold text-gray-700">
                     Remaining Quantity
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="hover:bg-gray-50 transition duration-150">
-                  <td className="py-3 px-4 border-b text-gray-600">1200</td>
-                  <td className="py-3 px-4 border-b text-gray-600">1000</td>
-                  <td className="py-3 px-4 border-b text-gray-600">70</td>
+                <tr className="transition duration-150 hover:bg-gray-50">
+                  <td className="border-b px-4 py-3 text-gray-600">1200</td>
+                  <td className="border-b px-4 py-3 text-gray-600">1000</td>
+                  <td className="border-b px-4 py-3 text-gray-600">70</td>
                 </tr>
               </tbody>
             </table>
