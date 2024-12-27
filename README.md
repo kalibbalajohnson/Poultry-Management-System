@@ -2,7 +2,7 @@
 **BSSE 4105 | GROUP 9**  
 
 ## 1. Project Overview  
-Our project aims to develop a comprehensive Poultry Management System, leveraging predictive modeling and IoT systems. The application integrates multiple components to ensure seamless management of poultry operations through a user-friendly web interface, mobile application, AI-powered predictions, and IoT-based monitoring.
+Our project aims to develop a comprehensive Poultry Management System, leveraging predictive modeling and IoT systems for real-time monitoring of environment conditions. The application integrates multiple components to ensure seamless management of poultry operations through a user-friendly web interface, mobile application, AI-powered predictions, and IoT-based monitoring.
 
 ## 2. Project Structure  
 
