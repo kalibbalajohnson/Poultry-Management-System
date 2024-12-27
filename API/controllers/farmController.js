@@ -1,6 +1,6 @@
 const Farm = require("../models/farm");
 
-// Create a farm and associate it with the user's uid (provided in the request body)
+// Create a farm and associate it with the user's uid 
 exports.createFarm = async (req, res) => {
   try {
     const newFarm = new Farm({
