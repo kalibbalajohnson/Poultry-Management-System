@@ -2,6 +2,6 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-@app.get("/")
+@app.get("/predict")
 def read_root():
-    return {"message": "Welcome to FastAPI!"}
+    return {"message": "This is the prediction endpoint."}
