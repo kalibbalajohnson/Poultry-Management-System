@@ -7,9 +7,13 @@
     "dev": "vite",
     "start": "serve -s dist",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
-    "test": "mocha --require @babel/register 'src/**/*.test.js'"
+    "test": "mocha --require @babel/register 'src/**/*.test.js'",
+    "prepare": "husky",
+    "prettier": "prettier --write */**/*.{js,jsx,json,ts,tsx,scss,css,md}",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:strict": " eslint '*/**/*.{js,jsx,ts,tsx}'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -48,8 +52,11 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
     "mocha": "^10.7.3",
     "postcss": "^8.4.47",
+    "prettier": "^3.4.2",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.7.0",
