@@ -1,24 +1,22 @@
-# Poultry Management Web Application  
+# Poultry Management System
 **BSSE 4105 | GROUP 9**  
 
 ## 1. Project Overview  
 Our project aims to develop a comprehensive Poultry Management System, leveraging predictive modeling and IoT systems. The application integrates multiple components to ensure seamless management of poultry operations through a user-friendly web interface, mobile application, AI-powered predictions, and IoT-based monitoring.
 
----
-
 ## 2. Project Structure  
 
 The project is organized into the following directories:
 
-- **`Web App/`** - Contains the React.js application for the frontend, providing an intuitive interface for interacting with the system.
+- **`Web App/`** - Contains the React.js application for the frontend dashboard for interacting with the system.
 
-- **`Mobile App/`** - Contains the Dart code for the Flutter-based mobile application, offering on-the-go access to system features.
+- **`Mobile App/`** - Contains the Flutter mobile application, offering on-the-go access to system features.
 
-- **`API/`** - Contains the Node.js/Express.js application for the backend, handling core server-side logic and database interactions.
+- **`API/`** - Contains the Node.js/Express.js application for handling core server-side logic and database interactions.
 
-- **`AI Model/`** - Contains the FastAPI service for serving AI-based predictive models to enhance decision-making processes.
+- **`AI Model/`** - Contains the FastAPI service for serving AI-based predictive models.
 
-- **`Arduino/`** - Contains the Arduino code for IoT systems, enabling sensor integration and real-time environment monitoring.
+- **`Arduino/`** - Contains the Arduino code for IoT systems and real-time environment monitoring.
 
 ## Prerequisites
 Make sure you have the following installed on your system:
