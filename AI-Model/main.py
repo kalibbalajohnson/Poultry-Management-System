@@ -4,4 +4,4 @@ app = FastAPI()
 
 @app.get("/predict")
 def read_root():
-    return {"message": "This is the prediction endpoint."}
+    return {"message": "This is the prediction endpoint"}
