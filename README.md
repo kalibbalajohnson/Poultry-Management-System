@@ -10,20 +10,15 @@ Our project aims to develop a comprehensive Poultry Management System, leveragin
 
 The project is organized into the following directories:
 
-- **`Web App/`**  
-  Contains the React.js application for the frontend, providing an intuitive interface for users to interact with the system.
+- **`Web App/`** - Contains the React.js application for the frontend, providing an intuitive interface for interacting with the system.
 
-- **`Mobile App/`**  
-  Contains the Dart code for the Flutter-based mobile application, offering on-the-go access to system features.
+- **`Mobile App/`** - Contains the Dart code for the Flutter-based mobile application, offering on-the-go access to system features.
 
-- **`API/`**  
-  Contains the Node.js/Express.js application for the backend, handling core server-side logic and database interactions.
+- **`API/`** - Contains the Node.js/Express.js application for the backend, handling core server-side logic and database interactions.
 
-- **`AI Model/`**  
-  Contains the FastAPI service for serving AI-based predictive models to enhance decision-making processes.
+- **`AI Model/`** - Contains the FastAPI service for serving AI-based predictive models to enhance decision-making processes.
 
-- **`Arduino/`**  
-  Contains the Arduino code for IoT systems, enabling sensor integration and real-time monitoring of poultry conditions.
+- **`Arduino/`** - Contains the Arduino code for IoT systems, enabling sensor integration and real-time environment monitoring.
 
 ## Prerequisites
 Make sure you have the following installed on your system:
@@ -65,12 +60,6 @@ git clone https://github.com/kalibbalajohnson/Poultry-Management-System.git
 - pip install -r requirements.txt
 
 - uvicorn main:app --reload
-
-venv -m
-
-- pip install
-
-- npm run dev
 
 ### Mobile App Setup
 - cd Mobile App
