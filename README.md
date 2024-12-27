@@ -12,7 +12,7 @@ The project is organized into the following directories:
 
 - **`Mobile App/`** - Contains the Flutter mobile application, offering on-the-go access to system features.
 
-- **`API/`** - Contains the Node.js/Express.js application for handling core server-side logic and database interactions.
+- **`API/`** - Contains the Node.js/Express.js application for handling core server-side logic.
 
 - **`AI Model/`** - Contains the FastAPI service for serving AI-based predictive models.
 
