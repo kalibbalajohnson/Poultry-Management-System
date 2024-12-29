@@ -33,7 +33,7 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
-app.use("/api-docs/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use("/api/v1", farmRoutes);
 
 app.use((req, res, next) => {
