@@ -6,6 +6,7 @@ const immunizationSchema = new mongoose.Schema({
     scheduledEndDate: { type: Date }, 
     vaccineName: { type: String, required: true },
     status: { type: String, enum: ["pending", "completed", "cancelled"], default: "pending" },
+    reminderSent: { type: Boolean, default: false },
     notes: { type: String },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
