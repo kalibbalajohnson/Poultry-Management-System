@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const uri =
   "mongodb+srv://kalijoe11:DseNJnKKOPkqsTLq@poultry-management.7x02b.mongodb.net/?retryWrites=true&w=majority&appName=Poultry-Management";
@@ -13,4 +13,4 @@ async function connectToMongoDB() {
   }
 }
 
-module.exports = connectToMongoDB;
+export default connectToMongoDB;

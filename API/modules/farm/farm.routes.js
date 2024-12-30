@@ -1,6 +1,6 @@
-const express = require("express");
+import express from "express";
+import farmController from "./farm.controller.js";
 const router = express.Router();
-const poultryController = require("../controllers/farmController");
 
 /**
  * @swagger
@@ -31,7 +31,7 @@ const poultryController = require("../controllers/farmController");
  *       500:
  *         description: Internal server error.
  */
-router.post("/farm", poultryController.createFarm);
+router.post("/farm", farmController.createFarm);
 
 /**
  * @swagger
@@ -60,7 +60,7 @@ router.post("/farm", poultryController.createFarm);
  *       500:
  *         description: Internal server error.
  */
-router.get("/farm", poultryController.getFarms);
+router.get("/farm", farmController.getFarms);
 
 /**
  * @swagger
@@ -96,7 +96,7 @@ router.get("/farm", poultryController.getFarms);
  *       500:
  *         description: Internal server error.
  */
-router.get("/farm/:farmId", poultryController.getFarm);
+router.get("/farm/:farmId", farmController.getFarm);
 
 /**
  * @swagger
@@ -132,7 +132,7 @@ router.get("/farm/:farmId", poultryController.getFarm);
  *       500:
  *         description: Internal server error.
  */
-router.patch("/farm/:farmId", poultryController.updateFarm);
+router.patch("/farm/:farmId", farmController.updateFarm);
 
 /**
  * @swagger
@@ -157,6 +157,6 @@ router.patch("/farm/:farmId", poultryController.updateFarm);
  *       500:
  *         description: Internal server error.
  */
-router.delete("/farm/:farmId", poultryController.deleteFarm);
+router.delete("/farm/:farmId", farmController.deleteFarm);
 
-module.exports = router;
+export default router;

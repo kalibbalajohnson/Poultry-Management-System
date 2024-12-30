@@ -1,7 +1,7 @@
-const Farm = require("../models/farm");
+import Farm from "./farm.model.js";
 
-// Create a farm and associate it with the user's uid 
-exports.createFarm = async (req, res) => {
+// Create a farm and associate it with the user's uid
+const createFarm = async (req, res) => {
   try {
     const newFarm = new Farm({
       ...req.body,
@@ -18,7 +18,7 @@ exports.createFarm = async (req, res) => {
 };
 
 // Retrieve all farms for the specified user
-exports.getFarms = async (req, res) => {
+const getFarms = async (req, res) => {
   try {
     const farms = await Farm.find({ uid: req.query.uid });
     res.status(200).json(farms);
@@ -31,7 +31,7 @@ exports.getFarms = async (req, res) => {
 };
 
 // Retrieve a specific farm by ID and check if it belongs to the specified user
-exports.getFarm = async (req, res) => {
+const getFarm = async (req, res) => {
   try {
     const farm = await Farm.findOne({
       _id: req.params.farmId,
@@ -48,7 +48,7 @@ exports.getFarm = async (req, res) => {
 };
 
 // Update a farm if it belongs to the specified user
-exports.updateFarm = async (req, res) => {
+const updateFarm = async (req, res) => {
   try {
     const updatedFarm = await Farm.findOneAndUpdate(
       { _id: req.params.farmId, uid: req.body.uid },
@@ -67,7 +67,7 @@ exports.updateFarm = async (req, res) => {
 };
 
 // Delete a farm if it belongs to the specified user
-exports.deleteFarm = async (req, res) => {
+const deleteFarm = async (req, res) => {
   try {
     const deletedFarm = await Farm.findOneAndDelete({
       _id: req.params.farmId,
@@ -82,4 +82,12 @@ exports.deleteFarm = async (req, res) => {
       .status(500)
       .json({ message: "Error deleting farm", error: error.message });
   }
+};
+
+export default {
+  createFarm,
+  getFarms,
+  getFarm,
+  updateFarm,
+  deleteFarm,
 };

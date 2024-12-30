@@ -8,10 +8,13 @@ export default [
     },
   },
   pluginJs.configs.recommended,
+  
   {
+    plugins: ['import'],
     rules: {
-      // "no-console": "warn",
-      "no-undef": "off",
+      "no-undef": "error", 
+      "no-unused-vars": ["error"],
+      "import/no-unresolved": ["error"],
     },
   },
 ];

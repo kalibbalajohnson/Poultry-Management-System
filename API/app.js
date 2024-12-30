@@ -1,11 +1,12 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const logger = require("./logger");
-const connectToMongoDB = require("./config/db");
-const swaggerJsdoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
-const farmRoutes = require("./routes/farmRoutes");
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import logger from "./config/logger.js";
+import connectToMongoDB from "./config/db.js";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+import swaggerOptions from "./config/swagger.js";
+import farmRoutes from "./modules/farm/farm.routes.js";
 
 const port = process.env.PORT || 3001;
 const app = express();
@@ -13,23 +14,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-
-const swaggerOptions = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "PoultryPal API",
-      version: "1.0.0",
-      description: "API documentation for the PoultryPal application",
-    },
-    servers: [
-      {
-        url: "*",
-      },
-    ],
-  },
-  apis: ["./routes/*", "./controllers/*"],
-};
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 

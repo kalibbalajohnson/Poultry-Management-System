@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
 const immunizationSchema = new mongoose.Schema({
     house: { type: mongoose.Schema.Types.ObjectId, ref: "House", required: true, index: true },
@@ -10,12 +10,9 @@ const immunizationSchema = new mongoose.Schema({
     notes: { type: String },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
-});
-
-immunizationSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
+  }, 
+  { timestamps: true }
+);
 
 const Immunization = mongoose.model("Immunization", immunizationSchema);
-module.exports = Immunization;
+export default Immunization;
