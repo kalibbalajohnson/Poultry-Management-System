@@ -64,7 +64,7 @@ export function LoginForm() {
   };
 
   return (
-    <div className="bg-gray-50">
+    <div>
       <Navbar />
       <div className="mx-auto my-14 w-full max-w-md rounded-xl border bg-white p-8 shadow">
         <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800">

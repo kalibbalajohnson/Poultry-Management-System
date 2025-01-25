@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const stockSchema = new mongoose.Schema(
   {
     farm: { type: mongoose.Schema.Types.ObjectId, ref: "Farm", required: true },
-    itemType: {type: String, required: true, trim: true }, 
+    itemName: {type: String, required: true, trim: true }, 
     quantity: { type: Number, required: true, min: 0 },
     initialQuantity: { type: Number, required: true, min: 0 },
     isLow: { type: Boolean, default: false },
