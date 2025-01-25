@@ -1,6 +1,16 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { logout } from '../firebase/auth/authService';
 import { useState } from 'react';
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Bell } from 'lucide-react';
 
 function Navbar2() {
   const navigate = useNavigate();
@@ -15,33 +25,29 @@ function Navbar2() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-green-700 to-green-800 py-5 text-white shadow-lg">
+    <header className="border py-3">
       <div className="container mx-auto flex items-center justify-between px-6">
-        <Link to="/">
-          <h1 className="text-3xl font-bold tracking-wide">
-            Poultry Farm Management
-          </h1>
-        </Link>
-
+        <SidebarTrigger />
         <nav className="flex items-center space-x-6">
-          <button
-            onClick={handleLogout}
-            className="rounded px-4 py-2 font-semibold text-white transition duration-300 ease-in-out hover:bg-green-600 hover:shadow-md"
-          >
-            Logout
-          </button>
-
-          <div className="flex items-center">
-            <img
-              src="farm.jpg"
-              alt="User Avatar"
-              className="h-9 w-9 rounded-full border border-white bg-white"
-            />
-            <p className="ml-3 font-semibold text-white">
-              {' '}
-              {user?.email || 'User'}
-            </p>
-          </div>
+          <Bell className="w-6 h-6 text-gray-700" />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center">
+                <p className="font-semibold text-gray-600">
+                  {user?.email ? user.email[0].toUpperCase() : 'U'}
+                </p>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuLabel><button
+                onClick={handleLogout}>Logout
+              </button></DropdownMenuLabel>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
       </div>
     </header>
