@@ -70,17 +70,20 @@ const Dashboard: React.FC = () => {
         <Navbar2 />
         <main className="flex-grow px-8 py-6">
           <div className="space-y-6">
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
               {[
                 { title: "Temperature", value: `${sensorData.temperature}°C`, icon: <Thermometer size={24} className="text-gray-700" /> },
                 { title: "Humidity", value: `${sensorData.humidity}%`, icon: <Droplet size={24} className="text-gray-700" /> },
                 { title: "Ammonia Levels", value: `${sensorData.ammonia} ppm`, icon: <AlertCircle size={24} className="text-gray-700" /> },
                 { title: "CO2 Levels", value: `${sensorData.co2} ppm`, icon: <Cloud size={24} className="text-gray-700" /> },
               ].map((sensor, index) => (
-                <Card key={index} className="flex-shrink-0 w-56 h-24 p-4 shadow rounded-lg">
+                <Card
+                  key={index}
+                  className="flex-shrink-0 w-full sm:w-56 h-24 p-4 shadow rounded-lg"
+                >
                   <CardHeader className="flex justify-between p-0">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="ml-2 text-gray-700 text-sm">{sensor.title}</CardTitle>
+                    <div className="flex items-center justify-between w-full">
+                      <CardTitle className="text-gray-700 text-sm">{sensor.title}</CardTitle>
                       {sensor.icon}
                     </div>
                   </CardHeader>
