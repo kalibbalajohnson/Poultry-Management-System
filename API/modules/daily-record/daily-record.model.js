@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const dailyRecordSchema = new mongoose.Schema(
   {
+    id: { type: String, default: uuidv4, unique: true, required: true },
     house: { type: mongoose.Schema.Types.ObjectId, ref: "House", required: true, index: true },
     date: { type: Date, default: Date.now, index: true },
     averageTemperature: { type: Number },
