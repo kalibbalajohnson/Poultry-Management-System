@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const formulaSchema = new mongoose.Schema(
   {
+    id: { type: String, default: uuidv4, unique: true, required: true },
     farm: { type: mongoose.Schema.Types.ObjectId, ref: "Farm", required: true },
     name: { type: String, required: true, trim: true, maxlength: 100 },
     ingredients: [
