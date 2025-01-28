@@ -18,12 +18,12 @@ const items = [
     icon: PieChart, 
   },
   {
-    title: "Houses",
+    title: "Birds and Housing",
     url: "/houses",
     icon: House, 
   },
   {
-    title: "Daily Records",
+    title: "Production",
     url: "/daily-records",
     icon: Calendar, 
   },
@@ -33,17 +33,17 @@ const items = [
     icon: BarChart,
   },
   {
-    title: "Feed Formula",
+    title: "Feeding and Nutrition",
     url: "/feed-formula",
     icon: PlusCircle, 
   },
   {
-    title: "Immunization",
+    title: "Disease Control",
     url: "/immunization",
     icon: Users, 
   },
   {
-    title: "Diagnosis",
+    title: "Disease Diagnosis",
     url: "/diagnosis",
     icon: Search,
   },
