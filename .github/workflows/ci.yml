@@ -17,6 +17,7 @@ jobs:
         run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
       - name: Build the Docker image
+        run: cd Web-App
         run: docker build -t kalibbalajohnson/poultrypal .
 
       - name: Add latest tag to image
