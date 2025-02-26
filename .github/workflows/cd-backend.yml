@@ -24,28 +24,28 @@ jobs:
           echo "SSH connection successful."
 
           echo "Pruning Docker system to remove unused containers, networks, images, and volumes..."
-          sudo docker system prune -a --volumes -f
+          docker system prune -a --volumes -f
 
           echo "Stopping and removing old container..."
           CONTAINER_ID=$(sudo docker ps -a -q -f name=poultrypal-backend-container)
           if [ -n "$CONTAINER_ID" ]; then
-            sudo docker stop "$CONTAINER_ID"
-            sudo docker rm -f "$CONTAINER_ID"
+            docker stop "$CONTAINER_ID"
+            docker rm -f "$CONTAINER_ID"
           else
             echo "No old container to remove."
           fi
 
           echo "Deleting Docker image with tag latest..."
-          IMAGE_ID=$(sudo docker images -q kalibbalajohnson/poultrypal-backend:latest)
+          IMAGE_ID=$(docker images -q kalibbalajohnson/poultrypal-backend:latest)
           if [ -n "$IMAGE_ID" ]; then
-            sudo docker rmi -f "$IMAGE_ID"
+            docker rmi -f "$IMAGE_ID"
           else
             echo "No image with tag latest to remove."
           fi
 
           echo "Pulling new Docker image..."
-          sudo docker pull kalibbalajohnson/poultrypal-backend:latest
+          docker pull kalibbalajohnson/poultrypal-backend:latest
 
           echo "Running new Docker container..."
-          sudo docker run -d -p 3000:3000 --name poultrypal-backend-container kalibbalajohnson/poultrypal-backend:latest
+          docker run -d -p 3000:3000 --name poultrypal-backend-container kalibbalajohnson/poultrypal-backend:latest
           EOF
