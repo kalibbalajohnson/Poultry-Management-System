@@ -8,9 +8,16 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H server-ip >> ~/.ssh/known_hosts
+
       - name: Docker - Prune Server
         run: |
           echo "Pruning Docker system to remove unused containers, networks, images, and volumes..."
@@ -18,7 +25,7 @@ jobs:
 
       - name: Stop and Remove Old Docker Container
         run: |
-          CONTAINER_ID=$(sudo docker ps -a -q -f name=poultrypal-container)
+          CONTAINER_ID=$(sudo docker ps -a -q -f name=poultrypal-backend-container)
           if [ -n "$CONTAINER_ID" ]; then
             echo "Stopping and removing old container..."
             sudo docker stop "$CONTAINER_ID"
@@ -29,7 +36,7 @@ jobs:
 
       - name: Delete Docker Image with Tag latest
         run: |
-          IMAGE_ID=$(sudo docker images -q kalibbalajohnson/poultrypal:latest)
+          IMAGE_ID=$(sudo docker images -q kalibbalajohnson/poultrypal-backend:latest)
           if [ -n "$IMAGE_ID" ]; then
             echo "Deleting Docker image with tag latest..."
             sudo docker rmi -f "$IMAGE_ID"
@@ -38,8 +45,8 @@ jobs:
           fi
 
       - name: Pull Docker Image
-        run: sudo docker pull kalibbalajohnson/poultrypal:latest
+        run: sudo docker pull kalibbalajohnson/poultrypal-backend:latest
 
       - name: Run Docker Container
         run: |
-          sudo docker run -d -p 5137:5137 --name poultrypal-container kalibbalajohnson/poultrypal:latest
+          sudo docker run -d -p 3000:3000 --name poultrypal-backend-container kalibbalajohnson/poultrypal-backend:latest
