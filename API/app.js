@@ -6,7 +6,7 @@ import connectToMongoDB from "./config/db.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import swaggerOptions from "./config/swagger.js";
-import farmRoutes from "./modules/farm/farm.routes.js";
+import farmRoutes from "./src/farm/farm.routes.js";
 
 const port = process.env.PORT || 3000;
 const app = express();
