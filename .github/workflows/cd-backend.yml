@@ -27,7 +27,7 @@ jobs:
           docker system prune -a --volumes -f
 
           echo "Stopping and removing old container..."
-          CONTAINER_ID=$(sudo docker ps -a -q -f name=poultrypal-backend-container)
+          CONTAINER_ID=$(docker ps -a -q -f name=poultrypal-backend-container)
           if [ -n "$CONTAINER_ID" ]; then
             docker stop "$CONTAINER_ID"
             docker rm -f "$CONTAINER_ID"
@@ -47,5 +47,5 @@ jobs:
           docker pull kalibbalajohnson/poultrypal-backend:latest
 
           echo "Running new Docker container..."
-          docker run -d -p 3001:3001 --name poultrypal-backend-container kalibbalajohnson/poultrypal-backend:latest
+          docker run -d -p 3000:3000 --name poultrypal-backend-container kalibbalajohnson/poultrypal-backend:latest
           EOF
