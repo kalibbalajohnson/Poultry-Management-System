@@ -14,13 +14,16 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://127.0.0.1:3001/api/v1",
+        url: "http://92.112.180.180:3000/api/v1",
+      },
+      {
+        url: "http://127.0.0.1:3000/api/v1",
       },
     ],
   },
   apis: [
-    path.join(__dirname, "../modules/*/*.routes.js"),
-    path.join(__dirname, "../modules/*/*.controller.js"),
+    path.join(__dirname, "../src/*/*.routes.js"),
+    path.join(__dirname, "../src/*/*.controller.js"),
   ],
 };
 
