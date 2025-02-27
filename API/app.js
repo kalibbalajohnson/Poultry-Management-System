@@ -28,7 +28,9 @@ app.use((req, res, next) => {
 // Connect to MongoDB and start the server
 connectToMongoDB()
   .then(() => {
-    app.listen(port, () => logger.info(`Listening on port ${port}`));
+    app.listen(port, '0.0.0.0', () => {  
+      logger.info(`Server is running on http://0.0.0.0:${port}`);
+    });
   })
   .catch((error) => {
     console.error(
