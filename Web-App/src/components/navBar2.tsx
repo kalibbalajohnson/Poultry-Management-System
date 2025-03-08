@@ -25,7 +25,7 @@ function Navbar2() {
   };
 
   return (
-    <header className="border py-3">
+    <header className="border-b py-3">
       <div className="container mx-auto flex items-center justify-between px-6">
         <SidebarTrigger />
         <nav className="flex items-center space-x-6">

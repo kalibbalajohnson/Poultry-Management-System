@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import Navbar2 from "../components/navBar2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

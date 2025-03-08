@@ -1,5 +1,4 @@
 import { DataTable } from '@/components/dataTable/dataTable';
-
 import {
   Dialog,
   DialogContent,
@@ -49,10 +48,10 @@ function StockPage() {
   return (
     <Layout>
       <Navbar2 />
-      <div className="w-full p-4 space-y-4">
-        <div className="rounded-lg bg-white px-4 py-1">
+      <div className="w-full space-y-4">
+        <div className="rounded-lg bg-white px-8 py-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold text-green-700">
+            <h2 className="text-2xl font-semibold">
               Farm Stock
             </h2>
             <Dialog>
