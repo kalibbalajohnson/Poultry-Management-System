@@ -20,7 +20,7 @@ export default function Home() {
             provide predictive insights, enabling you to optimize your farm
             operations like never before.
           </p>
-          <p className="text-sm mb-10 text-gray-500">
+          <p className="text-sm mb-12 text-gray-500">
             From tracking egg production to analyzing feed efficiency, our
             intelligent models help you make informed decisions that lead to
             better productivity and profitability.
@@ -36,7 +36,7 @@ export default function Home() {
             <img
               src="farm.jpg"
               alt="Poultry Farm"
-              className="mb-4 rounded-lg shadow-md w-full sm:w-auto"
+              className="mb-2 rounded-lg shadow-md w-full sm:w-auto"
             />
           </div>
         </div>
