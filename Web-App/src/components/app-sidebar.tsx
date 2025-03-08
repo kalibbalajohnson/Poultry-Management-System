@@ -15,17 +15,17 @@ const items = [
   {
     title: "Dashboard",
     url: "/dashboard",
-    icon: PieChart, 
+    icon: PieChart,
   },
   {
     title: "Birds and Housing",
     url: "/houses",
-    icon: House, 
+    icon: House,
   },
   {
     title: "Production",
     url: "/daily-records",
-    icon: Calendar, 
+    icon: Calendar,
   },
   {
     title: "Stock",
@@ -33,14 +33,9 @@ const items = [
     icon: BarChart,
   },
   {
-    title: "Feeding and Nutrition",
-    url: "/feed-formula",
-    icon: PlusCircle, 
-  },
-  {
     title: "Disease Control",
     url: "/immunization",
-    icon: Users, 
+    icon: PlusCircle,
   },
   {
     title: "Disease Diagnosis",
@@ -48,9 +43,14 @@ const items = [
     icon: Search,
   },
   {
+    title: "Workers",
+    url: "/feed-formula",
+    icon: Users,
+  },
+  {
     title: "Settings",
     url: "/settings",
-    icon: Settings, 
+    icon: Settings,
   },
 ];
 

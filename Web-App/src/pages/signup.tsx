@@ -1,23 +1,25 @@
-'use client';
-
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { signUp } from '../firebase/auth/authService';
-import Navbar from '../components/navBar';
-import Footer from '@/components/footer';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+
+interface SignUpFormProps {
+  heading?: string;
+  subheading?: string;
+  logo: {
+    src: string;
+    alt: string;
+  };
+  signupText?: string;
+  loginText?: string;
+  loginUrl?: string;
+}
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -28,7 +30,17 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export function SignUpForm() {
+const SignUpForm = ({
+  heading = "PoultryPal",
+  subheading = "Sign up for free",
+  logo = {
+    src: "https://shadcnblocks.com/images/block/block-1.svg",
+    alt: "logo",
+  },
+  signupText = "Create an account",
+  loginText = "Already have an account?",
+  loginUrl = "/login",
+}: SignUpFormProps) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -57,14 +69,60 @@ export function SignUpForm() {
   };
 
   return (
-    <div>
-      <Navbar />
-      <div className="mx-auto my-14 w-full max-w-md rounded-xl border bg-white p-8 shadow">
-        <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800">
-          Sign Up
-        </h2>
+    <div className="h-screen flex items-center justify-center">
+      <div className="mx-auto my-14 w-full max-w-md rounded-lg bg-white p-8 shadow">
+        <div className="mb-6 flex flex-col items-center">
+          <Link to="/">
+            <div className='flex gap-2'>
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                className="mb-7 h-10 w-auto"
+              />
+              <p className="mb-2 text-2xl font-bold">{heading}</p>
+            </div>
+          </Link>
+          <p className="text-muted-foreground">{subheading}</p>
+        </div>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className='flex gap-4'>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="John"
+                        {...field}
+                        className="w-full rounded-md border px-4 py-2 focus:ring-2 focus:ring-blue-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Doe"
+                        {...field}
+                        className="w-full rounded-md border px-4 py-2 focus:ring-2 focus:ring-blue-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="email"
@@ -73,7 +131,7 @@ export function SignUpForm() {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="your-email@example.com"
+                      placeholder="email@example.com"
                       {...field}
                       className="w-full rounded-md border px-4 py-2 focus:ring-2 focus:ring-blue-400"
                     />
@@ -103,24 +161,25 @@ export function SignUpForm() {
             <div className="flex items-center justify-between">
               <Button
                 type="submit"
-                className="w-full rounded-md bg-blue-600 py-2 text-white transition duration-200 hover:bg-blue-700 focus:outline-none"
+                className="w-full"
                 disabled={loading}
               >
-                {loading ? 'Signing Up...' : 'Sign Up'}
+                {loading ? 'Signing Up...' : signupText}
               </Button>
             </div>
           </form>
         </Form>
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <a href="/login" className="text-blue-600 hover:underline">
-              Login
+            {loginText}{' '}
+            <a href={loginUrl} className="text-blue-600 hover:underline">
+              Log in
             </a>
           </p>
         </div>
       </div>
-      <Footer />
     </div>
   );
-}
+};
+
+export default SignUpForm;
