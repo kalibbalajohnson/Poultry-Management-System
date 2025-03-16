@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to Server via SSH
         run: |
-          ssh deploy@92.112.180.180 << 'EOF'
+          ssh root@92.112.180.180 << 'EOF'
           echo "SSH connection successful."
 
           echo "Pruning Docker system to remove unused containers, networks, images, and volumes..."
