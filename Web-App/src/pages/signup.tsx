@@ -30,7 +30,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const SignUpForm = ({
+const SignUpPage = ({
   heading = "PoultryPal",
   subheading = "Sign up for free",
   logo = {
@@ -182,4 +182,4 @@ const SignUpForm = ({
   );
 };
 
-export default SignUpForm;
+export default SignUpPage;

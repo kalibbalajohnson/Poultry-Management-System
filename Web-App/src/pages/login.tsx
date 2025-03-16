@@ -27,7 +27,7 @@ interface Login3Props {
   signupUrl?: string;
 }
 
-const LoginForm = ({
+const LoginPage = ({
   heading = "PoultryPal",
   subheading = "Welcome back",
   logo = {
@@ -134,4 +134,4 @@ const LoginForm = ({
   );
 };
 
-export default LoginForm;
+export default LoginPage;

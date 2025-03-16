@@ -12,14 +12,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-export type Stock = {
+export type Immunization = {
   id: string
-  item: string
-  category: string
-  quantity: number
+  batch: string
+  vaccineName: string
+  time: string
+  disease: string
+  status: string
+  notes: string
 }
 
-export const columns: ColumnDef<Stock>[] = [
+export const columns: ColumnDef<Immunization>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -43,26 +46,35 @@ export const columns: ColumnDef<Stock>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "item",
+    accessorKey: "batch",
+    id: "item",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Item
+          Batch
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
-    accessorKey: "category",
-    header: "Category",
+    accessorKey: "vaccineName",
+    header: "Vaccine Name",
   },
   {
-    accessorKey: "quantity",
-    header: "Quantity(kg)",
+    accessorKey: "disease",
+    header: "Disease",
+  },
+  {
+    accessorKey: "time",
+    header: "Time",
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
   },
   {
     id: "actions",
@@ -82,8 +94,9 @@ export const columns: ColumnDef<Stock>[] = [
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(payment.id)}
             >
-              Re Stock
+              Re Schedule
             </DropdownMenuItem>
+            <DropdownMenuItem>View Notes</DropdownMenuItem>
             <DropdownMenuItem>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
