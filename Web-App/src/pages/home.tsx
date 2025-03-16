@@ -3,14 +3,14 @@ import Navbar from '../components/navBar';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 
-export default function Home() {
+export default function HomePage() {
   return (
     <div>
       <Navbar />
       <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-r px-2 pb-16 text-gray-900">
         <div className="mx-auto md:mt-6 max-w-lg rounded-lg p-10 md:w-1/2">
           <h1 className="mb-4 text-4xl font-semibold leading-tight">
-            Welcome to Poultry Pal
+            Welcome to PoultryPal
           </h1>
           <p className="mb-6 text-gray-600">
             Manage your poultry farm’s daily records efficiently and effortlessly.

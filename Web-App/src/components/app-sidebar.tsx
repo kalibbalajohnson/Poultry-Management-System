@@ -33,7 +33,7 @@ const items = [
     icon: BarChart,
   },
   {
-    title: "Disease Control",
+    title: "Immunization",
     url: "/immunization",
     icon: PlusCircle,
   },

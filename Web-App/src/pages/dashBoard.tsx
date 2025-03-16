@@ -13,7 +13,7 @@ const generateSensorData = () => ({
   co2: (Math.random() * 500 + 400).toFixed(2),
 });
 
-const Dashboard: React.FC = () => {
+const DashboardPage: React.FC = () => {
   const [sensorData, setSensorData] = useState({
     temperature: "0",
     humidity: "0",
@@ -115,4 +115,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;

@@ -39,7 +39,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const Houses: React.FC = () => {
+const HousesPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -197,4 +197,4 @@ const Houses: React.FC = () => {
     );
 };
 
-export default Houses;
+export default HousesPage;
