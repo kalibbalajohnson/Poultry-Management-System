@@ -17,6 +17,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from 'rsuite';
+import React from 'react';
 
 const immunizationSchema = z.object({
     batch: z.string().min(1, "Batch number is required"),
@@ -35,6 +37,8 @@ const data: Immunization[] = [
 ];
 
 function ImmunizationPage() {
+    const [view, setView] = React.useState<'calendar' | 'table'>('calendar');
+
     const form = useForm({
         resolver: zodResolver(immunizationSchema),
         defaultValues: {
@@ -57,6 +61,14 @@ function ImmunizationPage() {
                 <div className="rounded-lg bg-white px-8 py-5">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold">Immunization</h2>
+                        <div>
+                            <Button
+                                variant="outline"
+                                onClick={() => setView(view === 'calendar' ? 'table' : 'calendar')}
+                            >
+                                {view === 'calendar' ? 'View Table' : 'View Calendar'}
+                            </Button>
+                        </div>
                         <Dialog>
                             <DialogTrigger>
                                 <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
@@ -146,7 +158,11 @@ function ImmunizationPage() {
                         </Dialog>
                     </div>
                     <div className="container mx-auto mt-4">
-                        <DataTable columns={columns} data={data} />
+                        {view === 'calendar' ? (
+                            <Calendar bordered />
+                        ) : (
+                            <DataTable columns={columns} data={data} />
+                        )}
                     </div>
                 </div>
             </div>
