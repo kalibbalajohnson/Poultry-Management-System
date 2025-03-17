@@ -43,8 +43,8 @@ const items = [
     icon: Search,
   },
   {
-    title: "Workers",
-    url: "/feed-formula",
+    title: "Staff",
+    url: "/staff",
     icon: Users,
   },
   {

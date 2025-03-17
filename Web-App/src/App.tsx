@@ -7,6 +7,8 @@ import LoginPage from './pages/login';
 import QueryProvider from '@/components/QueryProvider';
 import HousesPage from './pages/houses';
 import ImmunizationPage from './pages/immunization';
+import DiagnosisPage from './pages/diagnosis';
+import StaffPage from './pages/staff';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/stock" element={<StockPage />} />
           <Route path="/immunization" element={<ImmunizationPage />} />
+          <Route path="/diagnosis" element={<DiagnosisPage />} />
+          <Route path="/staff" element={<StaffPage />} />
           <Route path="/houses" element={<HousesPage />} />
           <Route path="/signup" element={<SignUpPage logo={{
             src: '',
