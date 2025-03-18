@@ -1,8 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
-import { ArrowUpDown } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import {
@@ -66,7 +65,7 @@ export const columns: ColumnDef<Stock>[] = [
   },
   {
     id: "actions",
-    header: "Action",
+    header: "Actions",
     cell: ({ row }) => {
       const payment = row.original
 

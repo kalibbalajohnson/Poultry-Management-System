@@ -5,7 +5,8 @@ import HomePage from './pages/home';
 import SignUpPage from './pages/signup';
 import LoginPage from './pages/login';
 import QueryProvider from '@/components/QueryProvider';
-import HousesPage from './pages/houses';
+import BatchPage from './pages/batch';
+import ProductionPage from './pages/production';
 import ImmunizationPage from './pages/immunization';
 
 function App() {
@@ -17,7 +18,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/stock" element={<StockPage />} />
           <Route path="/immunization" element={<ImmunizationPage />} />
-          <Route path="/houses" element={<HousesPage />} />
+          <Route path="/birds" element={<BatchPage />} />
+          <Route path="/production" element={<ProductionPage />} />
           <Route path="/signup" element={<SignUpPage logo={{
             src: '',
             alt: ''
