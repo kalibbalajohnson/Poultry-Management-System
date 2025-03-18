@@ -6,7 +6,6 @@ import SignUpPage from './pages/signup';
 import LoginPage from './pages/login';
 import QueryProvider from '@/components/QueryProvider';
 import BatchPage from './pages/batch';
-import ProductionPage from './pages/production';
 import ImmunizationPage from './pages/immunization';
 import DiagnosisPage from './pages/diagnosis';
 import StaffPage from './pages/staff';
@@ -21,7 +20,6 @@ function App() {
           <Route path="/stock" element={<StockPage />} />
           <Route path="/immunization" element={<ImmunizationPage />} />
           <Route path="/birds" element={<BatchPage />} />
-          <Route path="/production" element={<ProductionPage />} />
           <Route path="/diagnosis" element={<DiagnosisPage />} />
           <Route path="/staff" element={<StaffPage />} />
           <Route path="/signup" element={<SignUpPage logo={{
