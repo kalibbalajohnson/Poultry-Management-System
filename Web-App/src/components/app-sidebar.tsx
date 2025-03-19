@@ -40,7 +40,7 @@ const data = {
     },
     {
       title: "Production",
-      url: "/daily-records",
+      url: "/production",
       icon: Calendar,
     },
     {
