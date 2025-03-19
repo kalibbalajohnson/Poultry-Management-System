@@ -52,7 +52,7 @@ function DiagnosisPage() {
         <Layout>
             <Navbar2 />
             <div className="w-full space-y-4">
-                <div className="rounded-lg bg-white px-8 py-5 shadow-md">
+                <div className="bg-white px-8 py-5">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-gray-800">Disease Diagnosis</h2>
                         <Dialog>
@@ -97,13 +97,16 @@ function DiagnosisPage() {
                     <div className="container mx-auto mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {data.map((entry) => (
-                                <div key={entry.id} className="rounded-lg border p-2">
-                                    <img src={entry.imageUrl} alt={entry.disease} className="w-full h-28 object-cover rounded-md mb-3" />
+                                <div key={entry.id} className="p-4 border rounded-lg">
+                                    {/* <img src={entry.imageUrl} alt={entry.disease} className="w-full h-28 object-cover rounded-md mb-3" /> */}
                                     <p className="text-lg font-semibold text-gray-800">{entry.disease}</p>
-                                    <p className="text-sm text-gray-600">{entry.date}</p>
-                                    <button className="mt-3 w-full bg-green-700 text-white text-sm py-2 rounded-full hover:bg-green-800 transition">
+                                    <p className="text-sm mb-2 text-gray-600">{entry.date}</p>
+                                    <a
+                                        href={`/diagnosis/${entry.id}`}
+                                        className="text-black underline text-sm decoration-black hover:text-blue-600 hover:decoration-blue-600"
+                                    >
                                         View Details
-                                    </button>
+                                    </a>
                                 </div>
                             ))}
                         </div>

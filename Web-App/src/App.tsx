@@ -8,7 +8,8 @@ import QueryProvider from '@/components/QueryProvider';
 import BatchPage from './pages/birds';
 import HousingPage from './pages/housing';
 import ImmunizationPage from './pages/immunization';
-import DiagnosisPage from './pages/diagnosis';
+import DiagnosisPage from './pages/diagnosis/diagnosis';
+import DiagnosisDetail from './pages/diagnosis/diagnosisDetail';
 import StaffPage from './pages/staff';
 import ProductionPage from './pages/production';
 
@@ -24,6 +25,7 @@ function App() {
           <Route path="/birds" element={<BatchPage />} />
           <Route path="/housing" element={<HousingPage />} />
           <Route path="/diagnosis" element={<DiagnosisPage />} />
+          <Route path="/diagnosis/:id" element={<DiagnosisDetail />} />
           <Route path="/staff" element={<StaffPage />} />
           <Route path="/production" element={<ProductionPage />} />
           <Route path="/signup" element={<SignUpPage logo={{
