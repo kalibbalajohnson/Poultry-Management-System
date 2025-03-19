@@ -1,4 +1,3 @@
-import { DataTable } from '@/components/dataTable/dataTable';
 import {
     Dialog,
     DialogContent,
@@ -7,18 +6,19 @@ import {
     DialogTitle,
     DialogTrigger
 } from '@/components/ui/dialog';
-import { Immunization, columns } from "@/components/dataTable/immunizationColumns";
+import { Immunization } from "@/components/dataTable/immunizationColumns";
 import Layout from '@/components/layout';
 import Navbar2 from '@/components/navBar2';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from 'rsuite';
-import React from 'react';
+import { Scheduler } from "@aldabil/react-scheduler";
+import type { SchedulerRef } from "@aldabil/react-scheduler/types"
+import { useRef, useState } from 'react';
+import { Button } from "@mui/material";
 
 const immunizationSchema = z.object({
     batch: z.string().min(1, "Batch number is required"),
@@ -26,6 +26,21 @@ const immunizationSchema = z.object({
     time: z.string().min(1, "Time is required"),
     disease: z.string().min(1, "Disease is required"),
 });
+
+const EVENTS = [
+    {
+        event_id: 1,
+        title: "Meeting",
+        start: new Date(),
+        end: new Date(new Date().setHours(new Date().getHours() + 1)),
+    },
+    {
+        event_id: 2,
+        title: "Doctor's Appointment",
+        start: new Date(new Date().setDate(new Date().getDate() + 1)),
+        end: new Date(new Date().setDate(new Date().getDate() + 1)),
+    }
+];
 
 const data: Immunization[] = [
     { id: "1", batch: "B001", vaccineName: "Newcastle Vaccine", time: "08:00 AM", disease: "Newcastle Disease", status: "Completed", notes: "No reactions" },
@@ -37,7 +52,16 @@ const data: Immunization[] = [
 ];
 
 function ImmunizationPage() {
-    const [view, setView] = React.useState<'calendar' | 'table'>('calendar');
+    const calendarRef = useRef<SchedulerRef>(null);
+    const [view, setView] = useState("month");
+
+    const handleViewChange = (selectedView: "day" | "month" | "year") => {
+        setView(selectedView);
+
+        if (calendarRef.current) {
+            calendarRef.current.scheduler.handleState(selectedView, "view");
+        }
+    };
 
     const form = useForm({
         resolver: zodResolver(immunizationSchema),
@@ -61,17 +85,33 @@ function ImmunizationPage() {
                 <div className="rounded-lg bg-white px-8 py-5">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold">Immunization</h2>
+                        <div className="w-36">
+                            <Select onValueChange={handleViewChange} value={view}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select View" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="day">Day View</SelectItem>
+                                    <SelectItem value="week">Week View</SelectItem>
+                                    <SelectItem value="month">Month View</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div>
-                            <Button
-                                variant="outline"
-                                onClick={() => setView(view === 'calendar' ? 'table' : 'calendar')}
-                            >
-                                {view === 'calendar' ? 'View Table' : 'View Calendar'}
-                            </Button>
                         </div>
                         <Dialog>
-                            <DialogTrigger>
-                                <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
+                            <DialogTrigger asChild>
+                                <button
+                                    className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800"
+                                // onClick={() => {
+                                //     if (calendarRef.current) {
+                                //         calendarRef.current.scheduler.triggerDialog(true, {
+                                //             start: new Date(),
+                                //             end: new Date(new Date().setDate(new Date().getDate() + 1)),
+                                //         });
+                                //     }
+                                // }}
+                                >
                                     Add Schedule
                                 </button>
                             </DialogTrigger>
@@ -157,12 +197,23 @@ function ImmunizationPage() {
                             </DialogContent>
                         </Dialog>
                     </div>
-                    <div className="container mx-auto mt-4">
-                        {view === 'calendar' ? (
-                            <Calendar bordered />
-                        ) : (
-                            <DataTable columns={columns} data={data} />
-                        )}
+                    <div className="container mx-auto mt-5">
+                        <div>
+                            <Button
+                                variant="contained"
+                                onClick={() => {
+                                    if (calendarRef.current) {
+                                        calendarRef.current.scheduler.triggerDialog(true, {
+                                            start: new Date(),
+                                            end: new Date(new Date().setDate(new Date().getDate() + 1)),
+                                        });
+                                    }
+                                }}
+                            >
+                                Add Event Tomorrow
+                            </Button>
+                            <Scheduler ref={calendarRef} events={EVENTS} />
+                        </div>
                     </div>
                 </div>
             </div>
