@@ -9,6 +9,7 @@ import BatchPage from './pages/batch';
 import ImmunizationPage from './pages/immunization';
 import DiagnosisPage from './pages/diagnosis';
 import StaffPage from './pages/staff';
+import ProductionPage from './pages/production';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/birds" element={<BatchPage />} />
           <Route path="/diagnosis" element={<DiagnosisPage />} />
           <Route path="/staff" element={<StaffPage />} />
+          <Route path="/production" element={<ProductionPage />} />
           <Route path="/signup" element={<SignUpPage logo={{
             src: '',
             alt: ''
