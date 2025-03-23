@@ -18,15 +18,15 @@ export default function SettingsPage() {
         <Layout>
             <Navbar2 />
             <div className="flex flex-col w-full min-h-screen">
-                <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 dark:bg-gray-800/40">
+                <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-5 md:px-10 md:py-5 dark:bg-gray-800/40">
                     <div className="max-w-6xl w-full mx-auto grid gap-2">
-                        <h1 className="font-semibold text-3xl">Settings</h1>
+                        <h1 className="font-semibold text-2xl">Settings</h1>
                     </div>
-                    <div className="items-start gap-6 max-w-4xl w-full mx-auto">
+                    <div className="items-start gap-6 max-w-5xl w-full mx-auto">
                         <div className="grid gap-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Farm Name</CardTitle>
+                                    <CardTitle className="text-xl">Farm Name</CardTitle>
                                     <CardDescription>Used to identify your project in the dashboard.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -40,7 +40,7 @@ export default function SettingsPage() {
                             </Card>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Farm Location</CardTitle>
+                                    <CardTitle className="text-xl">Farm Location</CardTitle>
                                     <CardDescription>Specify the location of your poultry farm for logistical purposes.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -63,7 +63,7 @@ export default function SettingsPage() {
                             </Card>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Notifications</CardTitle>
+                                    <CardTitle className="text-xl">Notifications</CardTitle>
                                     <CardDescription>Choose what you want to be notified about.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-1">
@@ -92,7 +92,7 @@ export default function SettingsPage() {
                             </Card>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Appearance</CardTitle>
+                                    <CardTitle className="text-xl">Appearance</CardTitle>
                                     <CardDescription>Choose your preferred theme and font size.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
@@ -151,7 +151,7 @@ export default function SettingsPage() {
                             </Card>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Privacy</CardTitle>
+                                    <CardTitle className="text-xl">Privacy</CardTitle>
                                     <CardDescription>Manage your privacy settings.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
