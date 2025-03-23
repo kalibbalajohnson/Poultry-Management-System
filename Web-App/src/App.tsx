@@ -12,6 +12,7 @@ import DiagnosisPage from './pages/diagnosis/diagnosis';
 import DiagnosisDetail from './pages/diagnosis/diagnosisDetail';
 import StaffPage from './pages/staff';
 import SettingsPage from './pages/settings';
+import ProductionPage from './pages/production';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/diagnosis/:id" element={<DiagnosisDetail />} />
           <Route path="/staff" element={<StaffPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/production" element={<ProductionPage />} />
           <Route path="/signup" element={<SignUpPage logo={{
             src: '',
             alt: ''
