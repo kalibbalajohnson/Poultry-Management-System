@@ -7,6 +7,8 @@ import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import swaggerOptions from "./config/swagger.js";
 import farmRoutes from "./src/farm/farm.routes.js";
+import userRoutes from "./src/users/users.routes.js";
+import diagnosisRoutes from "./src/diagnosis/diagnosis.routes.js";
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -19,6 +21,8 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use("/api/v1", farmRoutes);
+app.use("/api/v1", userRoutes);
+app.use("/api/v1", diagnosisRoutes);
 
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`);
