@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 const diagnosisSchema = new mongoose.Schema(
   {
     id: { type: String, default: uuidv4, unique: true, required: true },
-    farm: { type: mongoose.Schema.Types.ObjectId, ref: "Farm", required: true },
+    farmId: { type: String, required: true },
     imageUrl: { type: String },
     disease: { type: String },
     notes: { type: String },

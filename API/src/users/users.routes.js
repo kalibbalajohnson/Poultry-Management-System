@@ -1,5 +1,5 @@
 import express from "express";
-import userController from "./user.controller.js";
+import userController from "./users.controller.js";
 
 const router = express.Router();
 
@@ -51,7 +51,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error.
  */
-router.post("/user", userController.createUser);
+router.post("/user/signup", userController.signup);
 
 /**
  * @swagger
@@ -86,7 +86,7 @@ router.post("/user", userController.createUser);
  *       500:
  *         description: Internal server error.
  */
-router.get("/user", userController.getAllUsers);
+// router.get("/user", userController.getAllUsers);
 
 /**
  * @swagger
@@ -128,7 +128,7 @@ router.get("/user", userController.getAllUsers);
  *       500:
  *         description: Internal server error.
  */
-router.get("/user/:id", userController.getUserById);
+// router.get("/user/:id", userController.getUserById);
 
 /**
  * @swagger
@@ -170,7 +170,7 @@ router.get("/user/:id", userController.getUserById);
  *       500:
  *         description: Internal server error.
  */
-router.patch("/user/:id", userController.updateUser);
+// router.patch("/user/:id", userController.updateUser);
 
 /**
  * @swagger
@@ -195,6 +195,8 @@ router.patch("/user/:id", userController.updateUser);
  *       500:
  *         description: Internal server error.
  */
-router.delete("/user/:id", userController.deleteUser);
+// router.delete("/user/:id", userController.deleteUser);
+
+router.post("/user/login", userController.login);
 
 export default router;
