@@ -1,4 +1,4 @@
-import { storage } from "./firebaseConfig";
+import { storage } from "../../config/firebase.js"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Diagnosis from "./diagnosis.model.js";
 import { getDiseasePrediction } from "../../config/utils.js";
