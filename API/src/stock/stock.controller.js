@@ -1,7 +1,7 @@
-import House from "./house.model.js";
+import Stock from "./stock.model.js";
 
-// Get all houses for the logged-in user's farm
-const getHouses = async (req, res) => {
+// Get all stock items for the logged-in user's farm
+const getStock = async (req, res) => {
   try {
     const user = req.user;
 
@@ -11,15 +11,14 @@ const getHouses = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const houses = await House.find({ farmId: user.farmId });
-
-    res.status(200).json(houses);
+    const stocks = await Stock.find({ farmId: user.farmId });
+    res.status(200).json(stocks);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-const createHouse = async (req, res) => {
+const createStock = async (req, res) => {
   try {
     const user = req.user;
 
@@ -29,29 +28,27 @@ const createHouse = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const { name, houseCapacity, numberOfHens, houseType, isMonitored } =
-      req.body;
+    const { item, category, quantity, threshold } = req.body;
 
-    const newHouse = new House({
+    const newStock = new Stock({
       farmId: user.farmId,
-      name,
-      houseCapacity,
-      numberOfHens,
-      houseType,
-      isMonitored,
+      item,
+      category,
+      quantity,
+      threshold,
     });
 
-    await newHouse.save();
-    res.status(201).json(newHouse);
+    await newStock.save();
+    res.status(201).json(newStock);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-const getHouseById = async (req, res) => {
+const getStockById = async (req, res) => {
   try {
     const user = req.user;
-    const houseId = req.params.id;
+    const stockId = req.params.id;
 
     if (!user.farmId) {
       return res
@@ -59,22 +56,22 @@ const getHouseById = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const house = await House.findOne({ id: houseId, farmId: user.farmId });
+    const stock = await Stock.findOne({ id: stockId, farmId: user.farmId });
 
-    if (!house) {
-      return res.status(404).json({ message: "House not found" });
+    if (!stock) {
+      return res.status(404).json({ message: "Stock item not found" });
     }
 
-    res.status(200).json(house);
+    res.status(200).json(stock);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-const updateHouse = async (req, res) => {
+const updateStock = async (req, res) => {
   try {
     const user = req.user;
-    const houseId = req.params.id;
+    const stockId = req.params.id;
     const updates = req.body;
 
     if (!user.farmId) {
@@ -83,28 +80,28 @@ const updateHouse = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const house = await House.findOneAndUpdate(
-      { id: houseId, farmId: user.farmId },
+    const stock = await Stock.findOneAndUpdate(
+      { id: stockId, farmId: user.farmId },
       updates,
       { new: true }
     );
 
-    if (!house) {
+    if (!stock) {
       return res
         .status(404)
-        .json({ message: "House not found or unauthorized" });
+        .json({ message: "Stock item not found or unauthorized" });
     }
 
-    res.status(200).json(house);
+    res.status(200).json(stock);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-const deleteHouse = async (req, res) => {
+const deleteStock = async (req, res) => {
   try {
     const user = req.user;
-    const houseId = req.params.id;
+    const stockId = req.params.id;
 
     if (!user.farmId) {
       return res
@@ -112,27 +109,27 @@ const deleteHouse = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const house = await House.findOneAndDelete({
-      id: houseId,
+    const stock = await Stock.findOneAndDelete({
+      id: stockId,
       farmId: user.farmId,
     });
 
-    if (!house) {
+    if (!stock) {
       return res
         .status(404)
-        .json({ message: "House not found or unauthorized" });
+        .json({ message: "Stock item not found or unauthorized" });
     }
 
-    res.status(200).json({ message: "House deleted successfully" });
+    res.status(200).json({ message: "Stock item deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 export default {
-  getHouses,
-  createHouse,
-  getHouseById,
-  updateHouse,
-  deleteHouse,
+  getStock,
+  createStock,
+  getStockById,
+  updateStock,
+  deleteStock,
 };
