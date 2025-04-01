@@ -51,7 +51,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error.
  */
-router.post("/user/signup", userController.signup);
+router.post("/signup", userController.signup);
 
 /**
  * @swagger
@@ -86,7 +86,7 @@ router.post("/user/signup", userController.signup);
  *       500:
  *         description: Internal server error.
  */
-// router.get("/user", userController.getAllUsers);
+// router.get("/", userController.getAllUsers);
 
 /**
  * @swagger
@@ -128,7 +128,7 @@ router.post("/user/signup", userController.signup);
  *       500:
  *         description: Internal server error.
  */
-// router.get("/user/:id", userController.getUserById);
+// router.get("/:id", userController.getUserById);
 
 /**
  * @swagger
@@ -170,7 +170,7 @@ router.post("/user/signup", userController.signup);
  *       500:
  *         description: Internal server error.
  */
-// router.patch("/user/:id", userController.updateUser);
+// router.patch("/:id", userController.updateUser);
 
 /**
  * @swagger
@@ -195,8 +195,8 @@ router.post("/user/signup", userController.signup);
  *       500:
  *         description: Internal server error.
  */
-// router.delete("/user/:id", userController.deleteUser);
+// router.delete("/:id", userController.deleteUser);
 
-router.post("/user/login", userController.login);
+router.post("/login", userController.login);
 
 export default router;

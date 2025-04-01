@@ -1,5 +1,6 @@
 import express from "express";
 import farmController from "./farm.controller.js";
+
 const router = express.Router();
 
 /**
@@ -31,7 +32,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error.
  */
-router.post("/farm", farmController.createFarm);
+router.post("/", farmController.createFarm);
 
 /**
  * @swagger
@@ -60,7 +61,7 @@ router.post("/farm", farmController.createFarm);
  *       500:
  *         description: Internal server error.
  */
-router.get("/farm", farmController.getFarms);
+router.get("/", farmController.getFarms);
 
 /**
  * @swagger
@@ -96,7 +97,7 @@ router.get("/farm", farmController.getFarms);
  *       500:
  *         description: Internal server error.
  */
-router.get("/farm/:farmId", farmController.getFarm);
+router.get("/:id", farmController.getFarm);
 
 /**
  * @swagger
@@ -132,7 +133,7 @@ router.get("/farm/:farmId", farmController.getFarm);
  *       500:
  *         description: Internal server error.
  */
-router.patch("/farm/:farmId", farmController.updateFarm);
+router.patch("/:id", farmController.updateFarm);
 
 /**
  * @swagger
@@ -157,6 +158,6 @@ router.patch("/farm/:farmId", farmController.updateFarm);
  *       500:
  *         description: Internal server error.
  */
-router.delete("/farm/:farmId", farmController.deleteFarm);
+router.delete("/:id", farmController.deleteFarm);
 
 export default router;
