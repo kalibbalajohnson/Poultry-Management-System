@@ -1,32 +1,22 @@
-import { storage } from "../../config/firebase.js"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Diagnosis from "./diagnosis.model.js";
-import { getDiseasePrediction } from "../../config/utils.js";
 
 const createDiagnosis = async (req, res) => {
   try {
-    const farmId = req.body;
-    const image = req.file;
+    const user = req.user;
 
-    if (!image) {
-      return res.status(400).json({ message: "No image file uploaded" });
+    if (!user.farmId) {
+      return res
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
     }
 
-    const disease = await getDiseasePrediction(image);
-    if (!disease) {
-      return res.status(500).json({ message: "Error predicting disease" });
-    }
-
-    const storageRef = ref(storage, `diagnosisImages/${image.originalname}`);
-    const snapshot = await uploadBytes(storageRef, image.buffer);
-    console.log("Uploaded file:", snapshot);
-
-    const imageUrl = await getDownloadURL(snapshot.ref);
+    const { imageUrl, disease, confidence } = req.body;
 
     const newDiagnosis = new Diagnosis({
-      farmId,
+      farmId: user.farmId,
       imageUrl,
       disease,
+      confidence,
     });
 
     const savedDiagnosis = await newDiagnosis.save();
@@ -45,33 +35,34 @@ const createDiagnosis = async (req, res) => {
 
 const getDiagnosesByFarm = async (req, res) => {
   try {
-    const { farmId } = req.params;
+    const user = req.user;
 
-    const diagnoses = await Diagnosis.find({ farmId });
-
-    if (diagnoses.length === 0) {
+    if (!user.farmId) {
       return res
-        .status(404)
-        .json({ message: "No diagnoses found for this farm" });
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
     }
 
-    res.status(200).json({
-      message: "Diagnoses retrieved successfully",
-      diagnoses,
-    });
+    const diagnoses = await Diagnosis.find({ farmId: user.farmId });
+
+    res.status(200).json(diagnoses);
   } catch (error) {
-    console.error("Error fetching diagnoses:", error);
-    res
-      .status(500)
-      .json({ message: "Error fetching diagnoses", error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 const getDiagnosisById = async (req, res) => {
   try {
     const { id } = req.params;
+    const user = req.user;
 
-    const diagnosis = await Diagnosis.findOne({ id });
+    if (!user.farmId) {
+      return res
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
+    }
+
+    const diagnosis = await Diagnosis.findOne({ id: id });
 
     if (!diagnosis) {
       return res.status(404).json({ message: "Diagnosis not found" });
@@ -93,9 +84,16 @@ const updateDiagnosis = async (req, res) => {
   try {
     const { id } = req.params;
     const { imageUrl, disease, notes } = req.body;
+    const user = req.user;
+
+    if (!user.farmId) {
+      return res
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
+    }
 
     const updatedDiagnosis = await Diagnosis.findOneAndUpdate(
-      { id },
+      { id: id },
       { imageUrl, disease, notes },
       { new: true }
     );
@@ -119,8 +117,15 @@ const updateDiagnosis = async (req, res) => {
 const deleteDiagnosis = async (req, res) => {
   try {
     const { id } = req.params;
+    const user = req.user;
 
-    const deletedDiagnosis = await Diagnosis.findOneAndDelete({ id });
+    if (!user.farmId) {
+      return res
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
+    }
+
+    const deletedDiagnosis = await Diagnosis.findOneAndDelete({ id: id });
 
     if (!deletedDiagnosis) {
       return res.status(404).json({ message: "Diagnosis not found" });
