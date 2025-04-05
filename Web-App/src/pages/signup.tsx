@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { signUp } from '../firebase/auth/authService';
+// import { signUp } from '../firebase/auth/authService';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 interface SignUpFormProps {
   heading?: string;
@@ -55,7 +56,9 @@ const SignUpPage = ({
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await signUp(data.email, data.password);
+      await axios.post('http://92.112.180.180:3000/user/signup',
+        data
+      );
       navigate('/login');
       form.reset();
     } catch (error) {

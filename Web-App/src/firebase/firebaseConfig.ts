@@ -1,22 +1,18 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: 'AIzaSyBA2zsvdgELSuJEDi4Q3sMmaRqf7Gxxr88',
-  authDomain: 'poultry-pal-09.firebaseapp.com',
-  projectId: 'poultry-pal-09',
-  storageBucket: 'poultry-pal-09.firebasestorage.app',
-  messagingSenderId: '646867194696',
-  appId: '1:646867194696:web:496ac2e2bce2ec52e7597d',
-  measurementId: 'G-PNLM0BCNEY'
+  apiKey: "AIzaSyDBh9rpCHpeyr8mdW5UgtTbaYV4SxgjniY",
+  authDomain: "health-management-system-5ef79.firebaseapp.com",
+  projectId: "health-management-system-5ef79",
+  storageBucket: "health-management-system-5ef79.appspot.com",
+  messagingSenderId: "67718641625",
+  appId: "1:67718641625:web:d091b939bdf716ea228bc8"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
+export const storage = getStorage(app);
+export { app };
