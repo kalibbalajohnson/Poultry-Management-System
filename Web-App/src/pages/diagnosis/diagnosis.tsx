@@ -71,7 +71,7 @@ function DiagnosisPage() {
             const confidence = predictionData?.confidence ?? 'Unknown';
 
             await axios.post(
-                'http://92.112.180.180:3000/diagnosis',
+                'http://92.112.180.180:3000/api/v1/diagnosis',
                 {
                     imageUrl,
                     disease,
@@ -95,7 +95,7 @@ function DiagnosisPage() {
         queryKey: ['diagnosis'],
         queryFn: async () => {
             try {
-                const res = await fetch('http://92.112.180.180:3000/diagnosis', {
+                const res = await fetch('http://92.112.180.180:3000/api/v1/diagnosis', {
                     headers: {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${accessToken}`,

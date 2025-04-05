@@ -55,7 +55,7 @@ const LoginPage = ({
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
-      const response = await axios.post('http://92.112.180.180:3000/user/login', data);
+      const response = await axios.post('http://92.112.180.180:3000/api/v1/user/login', data);
       
       const { access, refresh, user } = response.data;
       

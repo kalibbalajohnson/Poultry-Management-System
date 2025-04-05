@@ -64,7 +64,7 @@ const SignUpPage = ({
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await axios.post('http://92.112.180.180:3000/user/signup',
+      await axios.post('http://92.112.180.180:3000/api/v1/user/signup',
         data
       );
       navigate('/login');

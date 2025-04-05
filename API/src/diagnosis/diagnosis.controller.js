@@ -45,25 +45,19 @@ const createDiagnosis = async (req, res) => {
 
 const getDiagnosesByFarm = async (req, res) => {
   try {
-    const { farmId } = req.params;
+    const user = req.user;
 
-    const diagnoses = await Diagnosis.find({ farmId });
-
-    if (diagnoses.length === 0) {
+    if (!user.farmId) {
       return res
-        .status(404)
-        .json({ message: "No diagnoses found for this farm" });
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
     }
 
-    res.status(200).json({
-      message: "Diagnoses retrieved successfully",
-      diagnoses,
-    });
+    const diagnoses = await Diagnosis.find({ farmId: user.farmId });
+
+    res.status(200).json(diagnoses);
   } catch (error) {
-    console.error("Error fetching diagnoses:", error);
-    res
-      .status(500)
-      .json({ message: "Error fetching diagnoses", error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
