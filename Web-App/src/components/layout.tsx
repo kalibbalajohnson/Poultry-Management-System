@@ -5,23 +5,35 @@ import { useNavigate } from "react-router-dom";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     const navigate = useNavigate();
+
+    const accessToken = localStorage.getItem('accessToken');
+
     const [user, setUser] = useState(() => {
-        return JSON.parse(localStorage.getItem('user') || 'null');
+        const storedUser = localStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser) : null;
     });
 
+    const [currentAccessToken, setCurrentAccessToken] = useState(accessToken);
+
     useEffect(() => {
-        if (!user?.uid) {
+        if (!user?.id || !currentAccessToken) {
             navigate('/login');
         }
-    }, [user, navigate]);
+    }, [user, currentAccessToken, navigate]);
 
     useEffect(() => {
         const handleStorageChange = () => {
-            setUser(JSON.parse(localStorage.getItem('user') || 'null'));
+            const storedUser = localStorage.getItem('user');
+            const storedAccessToken = localStorage.getItem('accessToken');
+            setUser(storedUser ? JSON.parse(storedUser) : null);
+            setCurrentAccessToken(storedAccessToken);
         };
 
         window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
 
     return (
