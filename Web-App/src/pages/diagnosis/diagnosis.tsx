@@ -4,49 +4,113 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import Layout from '@/components/layout';
 import Navbar2 from '@/components/navBar2';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/firebase/firebaseConfig';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
-type Diagnosis = {
+const diagnosisSchema = z.object({
+    image: z.any().refine((fileList) => fileList?.length > 0, {
+        message: 'Image is required',
+    }),
+});
+
+interface Diagnosis {
     id: string;
     imageUrl: string;
     disease: string;
-    date: string;
-};
-
-const diagnosisSchema = z.object({
-    image: z.string().min(1, "Image is required"),
-});
-
-const data: Diagnosis[] = [
-    { id: "1", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScW0OxfCFzTKWuxBZJbpWgHvZSKJghvAKLhQ&s", disease: "Newcastle Disease", date: "21/06/2025" },
-    { id: "2", imageUrl: "https://www.chickens.allotment-garden.org/poultry-diary/wp-content/uploads/2017/12/03/can-you-house-train-chickens/Chicken-Dropping.jpg", disease: "Avian Influenza", date: "21/06/2025" },
-    { id: "3", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScW0OxfCFzTKWuxBZJbpWgHvZSKJghvAKLhQ&s", disease: "Salmonella", date: "21/06/2025" },
-    { id: "4", imageUrl: "https://www.chickens.allotment-garden.org/poultry-diary/wp-content/uploads/2017/12/03/can-you-house-train-chickens/Chicken-Dropping.jpg", disease: "Fowl Pox", date: "21/06/2025" },
-    { id: "5", imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScW0OxfCFzTKWuxBZJbpWgHvZSKJghvAKLhQ&s", disease: "Marek's Disease", date: "21/06/2025" },
-    { id: "6", imageUrl: "https://www.chickens.allotment-garden.org/poultry-diary/wp-content/uploads/2017/12/03/can-you-house-train-chickens/Chicken-Dropping.jpg", disease: "Coccidiosis", date: "21/06/2025" },
-];
+    notes: string;
+    createdAt: string;
+    updatedAt: string;
+}
 
 function DiagnosisPage() {
     const form = useForm({
         resolver: zodResolver(diagnosisSchema),
         defaultValues: {
-            image: '',
+            image: undefined,
         },
     });
 
-    const onSubmit = (values: z.infer<typeof diagnosisSchema>) => {
-        console.log("New Castle Detected:", values);
-        form.reset();
+    const accessToken = localStorage.getItem('accessToken');
+
+    const onSubmit = async (values: z.infer<typeof diagnosisSchema>) => {
+        const file = values.image[0];
+
+        if (!file) return;
+
+        try {
+            const fileRef = ref(storage, `PoultryPal-diagnosis/${file.name}`);
+            await uploadBytes(fileRef, file);
+            const imageUrl = await getDownloadURL(fileRef);
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const predictionResponse = await axios.post('http://92.112.180.180:8000/predict', formData);
+            const predictionData = predictionResponse.data;
+
+            const disease = predictionData?.predicted_class ?? 'Unknown';
+            const confidence = predictionData?.confidence ?? 'Unknown';
+
+            await axios.post(
+                'http://92.112.180.180:3000/diagnosis',
+                {
+                    imageUrl,
+                    disease,
+                    confidence,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+
+            form.reset();
+        } catch (err) {
+            console.error('Error submitting diagnosis:', err);
+        }
     };
+
+    const { data: diagnosis = [] } = useQuery<Diagnosis[]>({
+        queryKey: ['diagnosis'],
+        queryFn: async () => {
+            try {
+                const res = await fetch('http://92.112.180.180:3000/diagnosis', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+
+                if (!res.ok) throw new Error('Failed to fetch diagnosis data');
+                return res.json();
+            } catch (err) {
+                console.error('Failed to fetch diagnosis data:', err);
+                throw err;
+            }
+        },
+        refetchInterval: 3000,
+    });
 
     return (
         <Layout>
@@ -78,7 +142,11 @@ function DiagnosisPage() {
                                                     <FormItem>
                                                         <FormLabel>Upload Image</FormLabel>
                                                         <FormControl>
-                                                            <Input type="file" {...field} />
+                                                            <Input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={(e) => field.onChange(e.target.files)}
+                                                            />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -96,11 +164,15 @@ function DiagnosisPage() {
 
                     <div className="container mx-auto mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {data.map((entry) => (
+                            {diagnosis.map((entry: Diagnosis) => (
                                 <div key={entry.id} className="p-4 border rounded-lg">
-                                    {/* <img src={entry.imageUrl} alt={entry.disease} className="w-full h-28 object-cover rounded-md mb-3" /> */}
+                                    <img
+                                        src={entry.imageUrl}
+                                        alt={entry.disease}
+                                        className="w-full h-28 object-cover rounded-md mb-3"
+                                    />
                                     <p className="text-lg font-semibold text-gray-800">{entry.disease}</p>
-                                    <p className="text-sm mb-2 text-gray-600">{entry.date}</p>
+                                    <p className="text-sm mb-2 text-gray-600">{new Date(entry.createdAt).toDateString()}</p>
                                     <a
                                         href={`/diagnosis/${entry.id}`}
                                         className="text-black underline text-sm decoration-black hover:text-blue-600 hover:decoration-blue-600"

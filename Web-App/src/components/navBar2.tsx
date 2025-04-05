@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../firebase/auth/authService';
+// import { logout } from '../firebase/auth/authService';
 import { useState } from 'react';
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import {
@@ -17,11 +17,10 @@ function Navbar2() {
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
 
   const handleLogout = async () => {
-    if (logout) {
-      await logout();
-      localStorage.removeItem('user');
-      navigate('/login');
-    }
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    navigate('/login');
   };
 
   return (

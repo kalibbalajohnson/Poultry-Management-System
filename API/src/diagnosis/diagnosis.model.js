@@ -7,6 +7,7 @@ const diagnosisSchema = new mongoose.Schema(
     farmId: { type: String, required: true },
     imageUrl: { type: String },
     disease: { type: String },
+    confidence: { type: String },
     notes: { type: String },
   },
   { timestamps: true }

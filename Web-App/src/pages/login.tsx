@@ -6,8 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { login } from "../firebase/auth/authService";
+// import { login } from "../firebase/auth/authService";
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -45,29 +46,35 @@ const LoginPage = ({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+    reset,
+  } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = async (data: { email: string; password: string }) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
-      const userCredential = await login(data.email, data.password);
-      if (userCredential) {
-        const { uid, email } = userCredential.user;
-        localStorage.setItem("user", JSON.stringify({ uid, email }));
-        navigate("/dashboard");
-      } else {
-        console.error("Login failed: user credential is null");
-      }
+      const response = await axios.post('http://92.112.180.180:3000/user/login', data);
+      
+      const { access, refresh, user } = response.data;
+      
+      localStorage.setItem('accessToken', access);
+      localStorage.setItem('refreshToken', refresh);
+      localStorage.setItem('user', JSON.stringify(user));
+  
+      navigate('/dashboard');
+      reset();
     } catch (error) {
-      console.error("Login error:", error instanceof Error ? error.message : error);
+      console.error(
+        'Login error:',
+        error instanceof Error ? error.message : error
+      );
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="h-screen flex items-center justify-center">
       <div className="mx-auto w-full max-w-sm rounded-lg p-6 shadow">
