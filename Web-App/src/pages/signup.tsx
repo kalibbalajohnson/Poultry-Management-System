@@ -26,7 +26,13 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
   password: z
     .string()
-    .min(4, { message: 'Password must be at least 4 characters' })
+    .min(4, { message: 'Password must be at least 4 characters' }),
+  firstName: z
+    .string()
+    .min(2, { message: 'first name must be at least 2 characters' }),
+  lastName: z
+    .string()
+    .min(2, { message: 'last name must be at least 2 characters' })
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -93,7 +99,7 @@ const SignUpPage = ({
             <div className='flex gap-4'>
               <FormField
                 control={form.control}
-                name="email"
+                name="firstName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
@@ -110,7 +116,7 @@ const SignUpPage = ({
               />
               <FormField
                 control={form.control}
-                name="email"
+                name="lastName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
