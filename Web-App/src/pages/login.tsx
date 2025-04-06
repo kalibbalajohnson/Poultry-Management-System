@@ -56,13 +56,13 @@ const LoginPage = ({
     setLoading(true);
     try {
       const response = await axios.post('http://92.112.180.180:3000/api/v1/user/login', data);
-      
-      const { access, refresh, user } = response.data;
-      
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
+
+      const { accessToken, refreshToken, user } = response.data;
+
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(user));
-  
+
       navigate('/dashboard');
       reset();
     } catch (error) {
@@ -74,7 +74,7 @@ const LoginPage = ({
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="h-screen flex items-center justify-center">
       <div className="mx-auto w-full max-w-sm rounded-lg p-6 shadow">

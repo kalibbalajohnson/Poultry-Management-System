@@ -151,32 +151,32 @@ function StockPage() {
                         )}
                       />
                       <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Quantity</FormLabel>
-                            <FormControl>
-                              <Input type="number" placeholder="Enter quantity" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="threshold"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Threshold</FormLabel>
-                            <FormControl>
-                              <Input type="number" placeholder="Enter threshold" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quantity</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="Enter quantity" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="threshold"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Threshold</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="Enter threshold" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                       <Button type="submit" className="w-full bg-green-700 hover:bg-green-800">
                         {loading ? 'Adding...' : 'Add Stock'}
