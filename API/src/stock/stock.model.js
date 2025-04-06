@@ -6,7 +6,7 @@ const stockSchema = new mongoose.Schema(
     id: { type: String, default: uuidv4, unique: true, required: true },
     farmId: { type: String, required: true },
     item: { type: String, required: true },
-    category: { type: String, enum: ["Feed", "Equipment"], default: "Feed" },
+    category: { type: String, enum: ["Feed", "Equipment", "Medicine"], default: "Feed" },
     quantity: { type: Number, required: true },
     threshold: { type: Number },
   },
