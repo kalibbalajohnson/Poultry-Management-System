@@ -1,4 +1,9 @@
+import { useState } from 'react';
+import axios from 'axios';
+import Layout from '@/components/layout';
+import Navbar2 from '@/components/navBar2';
 import { DataTable } from '@/components/dataTable/dataTable';
+import { House, columns } from '@/components/dataTable/houseColumns';
 import {
   Dialog,
   DialogContent,
@@ -7,60 +12,96 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
-import { House, columns } from "@/components/dataTable/houseColumns"; // Update import
-import Layout from '@/components/layout';
-import Navbar2 from '@/components/navBar2';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useQuery } from '@tanstack/react-query';
 
-// Define the schema for a house
 const houseSchema = z.object({
-  name: z.string().min(1, "House name is required"),
-  capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
-  houseType: z.string().min(1, "House type is required"),
+  name: z.string().min(1, 'House name is required'),
+  capacity: z.coerce.number().min(1, 'Capacity must be at least 1'),
+  houseType: z.string().min(1, 'House type is required')
 });
 
-// Sample data for houses
-const data: House[] = [
-  {
-    id: "1",
-    name: "House A",
-    capacity: 500,
-    houseType: "Deep Litter",
-  },
-  {
-    id: "2",
-    name: "House B",
-    capacity: 1000,
-    houseType: "Cage",
-  },
-  {
-    id: "3",
-    name: "House C",
-    capacity: 700,
-    houseType: "Cage",
-  },
-];
+type FormData = z.infer<typeof houseSchema>;
 
 function HousingPage() {
-  const form = useForm({
+  const [loading, setLoading] = useState(false);
+
+  const form = useForm<FormData>({
     resolver: zodResolver(houseSchema),
     defaultValues: {
-      name: "",
+      name: '',
       capacity: 0,
-      houseType: "",
-    },
+      houseType: ''
+    }
   });
 
-  const onSubmit = (values: z.infer<typeof houseSchema>) => {
-    console.log("New House Added:", values);
-    form.reset();
+  const accessToken = localStorage.getItem('accessToken');
+
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        'http://92.112.180.180:3000/api/v1/house',
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      console.log('New House Added:', res.data);
+      form.reset();
+    } catch (error) {
+      console.error(
+        'House creation error:',
+        error instanceof Error ? error.message : error
+      );
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const { data: houses = [] } = useQuery<House[]>({
+    queryKey: ['houses'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('http://92.112.180.180:3000/api/v1/house', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch house data');
+        return res.json();
+      } catch (err) {
+        console.error('Failed to fetch house data:', err);
+        throw err;
+      }
+    },
+    refetchInterval: 3000,
+  });
 
   return (
     <Layout>
@@ -68,7 +109,7 @@ function HousingPage() {
       <div className="w-full space-y-4">
         <div className="rounded-lg bg-white px-8 py-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold">Farm Houses</h2> {/* Update title */}
+            <h2 className="text-2xl font-semibold">Farm Houses</h2>
             <Dialog>
               <DialogTrigger>
                 <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
@@ -77,7 +118,7 @@ function HousingPage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add House</DialogTitle> {/* Update title */}
+                  <DialogTitle>Add House</DialogTitle>
                   <DialogDescription>
                     Fill in the details below to add a new house.
                   </DialogDescription>
@@ -133,7 +174,7 @@ function HousingPage() {
                         )}
                       />
                       <Button type="submit" className="w-full bg-green-700 hover:bg-green-800">
-                        Add House
+                        {loading ? 'Adding...' : 'Add House'}
                       </Button>
                     </form>
                   </Form>
@@ -142,7 +183,7 @@ function HousingPage() {
             </Dialog>
           </div>
           <div className="container mx-auto mt-4">
-            <DataTable columns={columns} data={data} /> {/* Use House columns and data */}
+            <DataTable columns={columns} data={houses} />
           </div>
         </div>
       </div>

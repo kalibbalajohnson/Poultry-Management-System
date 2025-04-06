@@ -25,6 +25,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/firebase/firebaseConfig';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { useState } from 'react';
 
 const diagnosisSchema = z.object({
     image: z.any().refine((fileList) => fileList?.length > 0, {
@@ -42,6 +43,8 @@ interface Diagnosis {
 }
 
 function DiagnosisPage() {
+    const [loading, setLoading] = useState(false);
+
     const form = useForm({
         resolver: zodResolver(diagnosisSchema),
         defaultValues: {
@@ -52,6 +55,7 @@ function DiagnosisPage() {
     const accessToken = localStorage.getItem('accessToken');
 
     const onSubmit = async (values: z.infer<typeof diagnosisSchema>) => {
+        setLoading(true);
         const file = values.image[0];
 
         if (!file) return;
@@ -86,13 +90,14 @@ function DiagnosisPage() {
             );
 
             form.reset();
+            setLoading(false);
         } catch (err) {
             console.error('Error submitting diagnosis:', err);
         }
     };
 
-    const { data: diagnosis = [] } = useQuery<Diagnosis[]>({
-        queryKey: ['diagnosis'],
+    const { data: diagnoses = [] } = useQuery<Diagnosis[]>({
+        queryKey: ['diagnoses'],
         queryFn: async () => {
             try {
                 const res = await fetch('http://92.112.180.180:3000/api/v1/diagnosis', {
@@ -153,7 +158,7 @@ function DiagnosisPage() {
                                                 )}
                                             />
                                             <Button type="submit" className="w-full bg-green-700 hover:bg-green-800">
-                                                Submit
+                                                {loading ? 'Diagnosing...' : 'Diagnose'}
                                             </Button>
                                         </form>
                                     </Form>
@@ -161,10 +166,9 @@ function DiagnosisPage() {
                             </DialogContent>
                         </Dialog>
                     </div>
-
                     <div className="container mx-auto mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {diagnosis.map((entry: Diagnosis) => (
+                            {diagnoses.map((entry: Diagnosis) => (
                                 <div key={entry.id} className="p-4 border rounded-lg">
                                     <img
                                         src={entry.imageUrl}

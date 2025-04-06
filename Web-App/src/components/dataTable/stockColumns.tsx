@@ -16,6 +16,9 @@ export type Stock = {
   item: string
   category: string
   quantity: number
+  threshold: number
+  createdAt: string
+  updatedAt: string
 }
 
 export const columns: ColumnDef<Stock>[] = [
