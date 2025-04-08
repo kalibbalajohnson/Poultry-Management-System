@@ -78,9 +78,6 @@ const DiagnosisDetailPage = () => {
             <div className="bg-white px-8 py-5">
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-semibold text-gray-800">{diagnosis?.disease || "Unknown"}</h2>
-                    <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
-                        Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence * 100)}%` : "Unknown"}
-                    </button>
                 </div>
                 <div className="w-full">
                     <div className="flex justify-between space-x-4 w-full">
@@ -96,6 +93,9 @@ const DiagnosisDetailPage = () => {
                                         ? `${new Date(diagnosis.createdAt).toDateString()} ${new Date(diagnosis.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`
                                         : "Date unknown"}
                                 </p>
+                                <button className="rounded bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
+                                    Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence * 100)}%` : "Unknown"}
+                                </button>
                             </div>
                         </div>
                         <div className="mt-6 space-y-6 flex-1">
