@@ -1,47 +1,91 @@
-import { Link } from 'react-router-dom';
 import Navbar from '../components/navBar';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
+import { ArrowRight } from "lucide-react";
 
-export default function HomePage() {
+interface Hero1Props {
+  badge?: string;
+  heading: string;
+  description1: string;
+  description2: string;
+  buttons?: {
+    primary?: {
+      text: string;
+      url: string;
+    };
+    secondary?: {
+      text: string;
+      url: string;
+    };
+  };
+  image: {
+    src: string;
+    alt: string;
+  };
+}
+
+const HomePage = ({
+  heading = "Welcome to PoultryPal",
+  description1 = "Manage your poultry farm’s daily records efficiently and effortlessly.Our application harnesses the power of AI and machine learning to provide predictive insights, enabling you to optimize operations like never before.",
+  description2 = "From tracking egg production to analyzing feed efficiency, our intelligent models help you make informed decisions that lead to better productivity and profitability.",
+  buttons = {
+    primary: {
+      text: "Get Started",
+      url: "signup",
+    },
+    secondary: {
+      text: "Dashboard",
+      url: "login",
+    },
+  },
+  image = {
+    src: "farm.jpg",
+    alt: "Hero section demo image showing interface components",
+  },
+}: Hero1Props) => {
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-r px-2 pb-16 text-gray-900">
-        <div className="mx-auto md:mt-6 max-w-lg rounded-lg p-10 md:w-1/2">
-          <h1 className="mb-4 text-4xl font-semibold leading-tight">
-            Welcome to PoultryPal
-          </h1>
-          <p className="mb-6 text-gray-600">
-            Manage your poultry farm’s daily records efficiently and effortlessly.
-          </p>
-          <p className="text-sm mb-4 text-gray-500">
-            Our application harnesses the power of AI and machine learning to
-            provide predictive insights, enabling you to optimize your farm
-            operations like never before.
-          </p>
-          <p className="text-sm mb-12 text-gray-500">
-            From tracking egg production to analyzing feed efficiency, our
-            intelligent models help you make informed decisions that lead to
-            better productivity and profitability.
-          </p>
-          <Link to="/dashboard">
-            <Button>
-              Go to Dashboard
-            </Button>
-          </Link>
-        </div>
-        <div className="mx-auto mt-6 md:mt-8 flex max-w-2xl flex-grow items-center justify-center opacity-80 md:w-1/2">
-          <div className="text-left">
+      <section className="px-16 py-8 mb-16 flex-1">
+        <div className="container">
+          <div className="grid items-cener gap-8 lg:grid-cols-2">
+            <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+              <h1 className="my-6 text-3xl font-bold text-pretty lg:text-4xl">
+                {heading}
+              </h1>
+              <p className="mb-8 max-w-xl text-muted-foreground lg:text-md">
+                {description1}
+              </p>
+              <p className="mb-8 max-w-xl text-muted-foreground lg:text-md">
+                {description2}
+              </p>
+              <div className="flex w-full flex-col justify-center gap-2 sm:flex-row lg:justify-start">
+                {buttons.primary && (
+                  <Button asChild className="w-full sm:w-auto">
+                    <a href={buttons.primary.url}>{buttons.primary.text}</a>
+                  </Button>
+                )}
+                {buttons.secondary && (
+                  <Button asChild variant="outline" className="w-full sm:w-auto">
+                    <a href={buttons.secondary.url}>
+                      {buttons.secondary.text}
+                      <ArrowRight className="size-4 ml-1" />
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
             <img
-              src="farm.jpg"
-              alt="Poultry Farm"
-              className="mb-2 rounded-lg shadow-md w-full sm:w-auto"
+              src={image.src}
+              alt={image.alt}
+              className="max-h-96 w-full rounded-md object-cover"
             />
           </div>
         </div>
-      </div>
+      </section>
       <Footer />
     </div>
   );
-}
+};
+
+export default HomePage;

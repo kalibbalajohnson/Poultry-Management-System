@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input" // Import Input component
+import { Input } from "@/components/ui/input"
 
 export type Production = {
   houseBatchId: string
