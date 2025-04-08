@@ -1,79 +1,58 @@
-import React, { useEffect, useState } from "react";
 import Navbar2 from "../components/navBar2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import Layout from "@/components/layout";
-import { Thermometer, Droplet, AlertCircle, Cloud } from "lucide-react";
+import { Feather, Home, Stethoscope, Users } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
-const generateSensorData = () => ({
-  temperature: (Math.random() * 10 + 20).toFixed(2),
-  humidity: (Math.random() * 30 + 50).toFixed(2),
-  ammonia: (Math.random() * 20 + 5).toFixed(2),
-  co2: (Math.random() * 500 + 400).toFixed(2),
-});
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+
+const chartData = [
+  { month: "January", desktop: 186, mobile: 80 },
+  { month: "February", desktop: 305, mobile: 200 },
+  { month: "March", desktop: 237, mobile: 120 },
+  { month: "April", desktop: 73, mobile: 190 },
+  { month: "May", desktop: 209, mobile: 130 },
+  { month: "June", desktop: 214, mobile: 140 },
+]
+
+const chartConfig = {
+  desktop: {
+    label: "Eggs",
+    color: "#2563eb",
+  },
+  mobile: {
+    label: "Deaths",
+    color: "#60a5fa",
+  },
+} satisfies ChartConfig
 
 const DashboardPage: React.FC = () => {
-  const [sensorData, setSensorData] = useState({
-    temperature: "0",
-    humidity: "0",
-    ammonia: "0",
-    co2: "0",
-  });
-
-  const [history, setHistory] = useState({
-    temperature: [] as number[],
-    humidity: [] as number[],
-    ammonia: [] as number[],
-    co2: [] as number[],
-    time: [] as string[],
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newSensorData = generateSensorData();
-      setSensorData(newSensorData);
-
-      setHistory((prev) => ({
-        temperature: [...prev.temperature.slice(-9), parseFloat(newSensorData.temperature)],
-        humidity: [...prev.humidity.slice(-9), parseFloat(newSensorData.humidity)],
-        ammonia: [...prev.ammonia.slice(-9), parseFloat(newSensorData.ammonia)],
-        co2: [...prev.co2.slice(-9), parseFloat(newSensorData.co2)],
-        time: [
-          ...prev.time.slice(-9),
-          new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-        ],
-      }));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const generateChartData = (data: number[], label: string, color: string) => ({
-    labels: history.time,
-    datasets: [
-      {
-        label,
-        data,
-        fill: false,
-        borderColor: color,
-        tension: 0.3,
-      },
-    ],
-  });
-
   return (
     <Layout>
       <div className="min-h-screen flex flex-col">
         <Navbar2 />
         <main className="flex-grow px-8 py-6">
-          <div className="space-y-6">
+          <div className="space-y-4 mb-10">
+            <div className="flex justify-between">
+              <h2 className="text-2xl font-semibold">Dashboard</h2>
+              <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
+                Export Data
+              </button>
+            </div>
             <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
               {[
-                { title: "Temperature", value: `${sensorData.temperature}°C`, icon: <Thermometer size={24} className="text-gray-700" /> },
-                { title: "Humidity", value: `${sensorData.humidity}%`, icon: <Droplet size={24} className="text-gray-700" /> },
-                { title: "Ammonia Levels", value: `${sensorData.ammonia} ppm`, icon: <AlertCircle size={24} className="text-gray-700" /> },
-                { title: "CO2 Levels", value: `${sensorData.co2} ppm`, icon: <Cloud size={24} className="text-gray-700" /> },
+                { title: "Birds", value: 50000, icon: <Feather size={24} className="text-gray-700" /> },
+                { title: "Houses Monitored", value: 10, icon: <Home size={24} className="text-gray-700" /> },
+                { title: "Diagnoses", value: 1000, icon: <Stethoscope size={24} className="text-gray-700" /> },
+                { title: "Staff", value: 200, icon: <Users size={24} className="text-gray-700" /> },
               ].map((sensor, index) => (
                 <Card
                   key={index}
@@ -91,23 +70,29 @@ const DashboardPage: React.FC = () => {
                 </Card>
               ))}
             </div>
-            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-              {[
-                { label: "Temperature (°C)", data: history.temperature, color: "rgba(75,192,192,1)" },
-                { label: "Humidity (%)", data: history.humidity, color: "rgba(0, 128, 128, 1)" }, // Teal
-                { label: "Ammonia Levels (ppm)", data: history.ammonia, color: "rgba(255,206,86,1)" },
-                { label: "CO2 Levels (ppm)", data: history.co2, color: "rgba(153,102,255,1)" },
-              ].map((chart, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle>{chart.label}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Line data={generateChartData(chart.data, chart.label, chart.color)} />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          </div>
+          <div className="pl-12 pr-28">
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <BarChart accessibilityLayer data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={10}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
+                <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+              </BarChart>
+            </ChartContainer>
           </div>
         </main>
       </div>

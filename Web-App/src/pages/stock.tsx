@@ -32,6 +32,7 @@ type FormData = z.infer<typeof stockSchema>;
 
 function StockPage() {
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(stockSchema),
@@ -61,6 +62,7 @@ function StockPage() {
 
       console.log('New Stock Added:', res.data);
       form.reset();
+      setOpen(false);
     } catch (error) {
       console.error(
         'Stock creation error:',
@@ -99,7 +101,7 @@ function StockPage() {
         <div className="rounded-lg bg-white px-8 py-5">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">Farm Stock</h2>
-            <Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger>
                 <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
                   Add Stock

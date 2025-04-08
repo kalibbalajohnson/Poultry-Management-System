@@ -15,7 +15,6 @@ export type House = {
   id: string
   name: string
   capacity: number
-  numberOfHens: number
   houseType: string
   isMonitored: string
   createdAt: string
@@ -46,7 +45,8 @@ export const columns: ColumnDef<House>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    id: "item",
+    accessorFn: (row) => row.name,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -68,10 +68,6 @@ export const columns: ColumnDef<House>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-  },
-  {
-    accessorKey: "numberOfHens",
-    header: "Number of Hens",
   },
   {
     accessorKey: "houseType",

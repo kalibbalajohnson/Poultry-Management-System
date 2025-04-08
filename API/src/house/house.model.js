@@ -7,7 +7,6 @@ const houseSchema = new mongoose.Schema(
     farmId: { type: String, required: true },
     name: { type: String, required: true },
     capacity: { type: Number },
-    numberOfHens: { type: Number },
     houseType: { type: String, enum: ["Caged", "Deep Litter"] },
     isMonitored: { type: Boolean, default: false },
   },

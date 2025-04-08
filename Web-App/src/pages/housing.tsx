@@ -44,6 +44,7 @@ type FormData = z.infer<typeof houseSchema>;
 
 function HousingPage() {
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(houseSchema),
@@ -72,6 +73,7 @@ function HousingPage() {
 
       console.log('New House Added:', res.data);
       form.reset();
+      setOpen(false);
     } catch (error) {
       console.error(
         'House creation error:',
@@ -86,12 +88,13 @@ function HousingPage() {
     queryKey: ['houses'],
     queryFn: async () => {
       try {
-        const res = await fetch('http://92.112.180.180:3000/api/v1/house', {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const res = await fetch('http://92.112.180.180:3000/api/v1/house',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
 
         if (!res.ok) throw new Error('Failed to fetch house data');
         return res.json();
@@ -110,7 +113,7 @@ function HousingPage() {
         <div className="rounded-lg bg-white px-8 py-5">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">Farm Houses</h2>
-            <Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger>
                 <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
                   Add House
@@ -165,7 +168,7 @@ function HousingPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="Deep Litter">Deep Litter</SelectItem>
-                                  <SelectItem value="Cage">Cage</SelectItem>
+                                  <SelectItem value="Caged">Caged</SelectItem>
                                 </SelectContent>
                               </Select>
                             </FormControl>

@@ -21,11 +21,12 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useState } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/firebase/firebaseConfig';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useState } from 'react';
+import { MoreVertical } from "lucide-react";
 
 const diagnosisSchema = z.object({
     image: z.any().refine((fileList) => fileList?.length > 0, {
@@ -37,6 +38,7 @@ interface Diagnosis {
     id: string;
     imageUrl: string;
     disease: string;
+    confidence: string;
     notes: string;
     createdAt: string;
     updatedAt: string;
@@ -169,17 +171,24 @@ function DiagnosisPage() {
                     <div className="container mx-auto mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {diagnoses.map((entry: Diagnosis) => (
-                                <div key={entry.id} className="p-4 border rounded-lg">
+                                <div key={entry?.id} className="rounded-lg mb-4">
                                     <img
-                                        src={entry.imageUrl}
-                                        alt={entry.disease}
+                                        src={entry?.imageUrl}
+                                        alt={entry?.disease}
                                         className="w-full h-28 object-cover rounded-md mb-3"
                                     />
-                                    <p className="text-lg font-semibold text-gray-800">{entry.disease}</p>
-                                    <p className="text-sm mb-2 text-gray-600">{new Date(entry.createdAt).toDateString()}</p>
+                                    <div className="flex pl-1 justify-between">
+                                        <p className="text-lg font-semibold text-gray-800">{entry?.disease}</p>
+                                        <MoreVertical className="w-4 h-4 text-gray-600 cursor-pointer" />
+                                    </div>
+                                    <p className="text-xs pl-1 mb-2 text-gray-600">
+                                        {entry?.createdAt
+                                            ? `${new Date(entry.createdAt).toDateString()} ${new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`
+                                            : "Date unknown"}
+                                    </p>
                                     <a
-                                        href={`/diagnosis/${entry.id}`}
-                                        className="text-black underline text-sm decoration-black hover:text-blue-600 hover:decoration-blue-600"
+                                        href={`/diagnosis/${entry?.id}`}
+                                        className="text-black pl-1 underline text-sm decoration-black hover:text-blue-600 hover:decoration-blue-600"
                                     >
                                         View Details
                                     </a>

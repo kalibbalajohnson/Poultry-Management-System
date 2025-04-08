@@ -29,8 +29,7 @@ const createHouse = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const { name, capacity, houseType } =
-      req.body;
+    const { name, capacity, houseType } = req.body;
 
     const newHouse = new House({
       farmId: user.farmId,
