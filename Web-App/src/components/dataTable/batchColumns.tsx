@@ -45,13 +45,14 @@ export const columns: ColumnDef<Batch>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "batchName",
+    id: "item",
+    accessorFn: (row) => row.name,
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Batch Name
+         Batch Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
