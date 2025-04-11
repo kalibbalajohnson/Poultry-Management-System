@@ -46,6 +46,64 @@ const signup = async (req, res) => {
   }
 };
 
+const registerUser = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user.farmId) {
+      return res
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
+    }
+
+    const { firstName, lastName, role, email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      farmId: user.farmId,
+      firstName,
+      lastName,
+      role,
+      email,
+      password: hashedPassword,
+    });
+
+    const savedUser = await newUser.save();
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: savedUser,
+    });
+  } catch (error) {
+    console.error("Error registering user:", error);
+    res.status(500).json({ message: "Error registering user", error: error.message });
+  }
+};
+
+const getStaff = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user.farmId) {
+      return res
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
+    }
+
+    const staff = await User.find({ farmId: user.farmId });
+
+    res.status(200).json(staff);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -97,4 +155,6 @@ const login = async (req, res) => {
 export default {
   signup,
   login,
+  registerUser,
+  getStaff,
 };

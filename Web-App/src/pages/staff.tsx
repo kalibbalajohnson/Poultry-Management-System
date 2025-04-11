@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import axios from 'axios';
 import { DataTable } from '@/components/dataTable/dataTable';
 import {
     Dialog,
@@ -7,7 +9,7 @@ import {
     DialogTitle,
     DialogTrigger
 } from '@/components/ui/dialog';
-import { Workers, columns } from "@/components/dataTable/staffColumns";
+import { Staff, columns } from "@/components/dataTable/staffColumns";
 import Layout from '@/components/layout';
 import Navbar2 from '@/components/navBar2';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -17,42 +19,85 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from '@tanstack/react-query';
 
 const userSchema = z.object({
-    firstName: z.string().min(1, "Batch number is required"),
-    lastName: z.string().min(1, "Vaccine name is required"),
-    userRole: z.string().min(1, "Time is required"),
-    email: z.string().min(1, "Disease is required"),
-    contact: z.string().min(1, "Time is required"),
-    password: z.string().min(1, "Disease is required"),
+    firstName: z.string().min(1, "First Name is required"),
+    lastName: z.string().min(1, "Last Name is required"),
+    role: z.string().min(1, "Role is required"),
+    email: z.string().min(1, "email is required"),
+    // contact: z.string().min(1, "contact is required"),
+    password: z.string().min(1, "password is required"),
 });
 
-const data: Workers[] = [
-    { id: "1", firstName: "John", lastName: "Doe", userRole: "Admin", email: "john.doe@example.com", contact: "0785434567", password: "securepassword1" },
-    { id: "2", firstName: "Jane", lastName: "Smith", userRole: "Worker", email: "jane.smith@example.com", contact: "0785434567", password: "securepassword2" },
-    { id: "3", firstName: "Robert", lastName: "Brown", userRole: "Worker", email: "robert.brown@example.com", contact: "0785434567", password: "securepassword3" },
-    { id: "4", firstName: "Emily", lastName: "Clark", userRole: "Worker", email: "emily.clark@example.com", contact: "0785434567", password: "securepassword4" },
-    { id: "5", firstName: "Michael", lastName: "Davis", userRole: "Worker", email: "michael.davis@example.com", contact: "0785434567", password: "securepassword5" },
-    { id: "6", firstName: "Sarah", lastName: "Wilson", userRole: "Worker", email: "sarah.wilson@example.com", contact: "0785434567", password: "securepassword6" }
-];
+type FormData = z.infer<typeof userSchema>;
 
 function StaffPage() {
-    const form = useForm({
+    const [loading, setLoading] = useState(false);
+    const [open, setOpen] = useState(false);
+
+    const form = useForm<FormData>({
         resolver: zodResolver(userSchema),
         defaultValues: {
             firstName: "",
             lastName: "",
-            userRole: "",
+            role: "",
             email: "",
-            contact: "",
+            // contact: "",
             password: "",
         },
     });
 
-    const onSubmit = (values: z.infer<typeof userSchema>) => {
-        console.log("User Added:", values);
-        form.reset();
+    const accessToken = localStorage.getItem('accessToken');
+
+    const onSubmit = async (data: FormData) => {
+        setLoading(true);
+        try {
+            const res = await axios.post(
+                'http://92.112.180.180:3000/api/v1/user/register',
+                data,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            console.log('New Staff Added:', res.data);
+            form.reset();
+            setOpen(false);
+        } catch (error) {
+            console.error(
+                'Staff creation error:',
+                error instanceof Error ? error.message : error
+            );
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const { data: staff = [] } = useQuery<Staff[]>({
+        queryKey: ['staff'],
+        queryFn: async () => {
+            try {
+                const res = await fetch('http://92.112.180.180:3000/api/v1/user/staff',
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    });
+
+                if (!res.ok) throw new Error('Failed to fetch staff data');
+                return res.json();
+            } catch (err) {
+                console.error('Failed to fetch staff data:', err);
+                throw err;
+            }
+        },
+        refetchInterval: 3000,
+    });
 
     return (
         <Layout>
@@ -61,7 +106,7 @@ function StaffPage() {
                 <div className="rounded-lg bg-white px-8 py-5">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold">Farm Staff</h2>
-                        <Dialog>
+                        <Dialog open={open} onOpenChange={setOpen}>
                             <DialogTrigger>
                                 <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
                                     Add Staff
@@ -105,12 +150,12 @@ function StaffPage() {
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="userRole"
+                                                name="role"
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Role</FormLabel>
                                                         <FormControl>
-                                                            <Select {...field}>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder="Select staff role" />
                                                                 </SelectTrigger>
@@ -128,19 +173,19 @@ function StaffPage() {
                                                     </FormItem>
                                                 )}
                                             />
-                                            <FormField
+                                            {/* <FormField
                                                 control={form.control}
                                                 name="contact"
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Contact</FormLabel>
                                                         <FormControl>
-                                                        <Input placeholder="Enter phone number" {...field} />
+                                                            <Input placeholder="Enter phone number" {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
-                                            />
+                                            /> */}
                                             <FormField
                                                 control={form.control}
                                                 name="email"
@@ -148,7 +193,7 @@ function StaffPage() {
                                                     <FormItem>
                                                         <FormLabel>Email</FormLabel>
                                                         <FormControl>
-                                                        <Input placeholder="Enter email address" {...field} />
+                                                            <Input placeholder="Enter email address" {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -161,14 +206,14 @@ function StaffPage() {
                                                     <FormItem>
                                                         <FormLabel>Password</FormLabel>
                                                         <FormControl>
-                                                        <Input placeholder="Enter password" {...field} />
+                                                            <Input placeholder="Enter password" {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
                                             <Button type="submit" className="w-full mt-4 bg-green-700 hover:bg-green-800 col-span-2">
-                                                Add Staff
+                                                {loading ? 'Adding...' : 'Add Staff'}
                                             </Button>
                                         </form>
                                     </Form>
@@ -177,7 +222,7 @@ function StaffPage() {
                         </Dialog>
                     </div>
                     <div className="container mx-auto mt-4">
-                        <DataTable columns={columns} data={data} />
+                        <DataTable columns={columns} data={staff} />
                     </div>
                 </div>
             </div>
