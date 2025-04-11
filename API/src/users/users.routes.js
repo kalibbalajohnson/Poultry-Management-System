@@ -1,5 +1,6 @@
 import express from "express";
 import userController from "./users.controller.js";
+import authMiddleware from "../../config/authMiddleware.js";
 
 const router = express.Router();
 
@@ -53,6 +54,8 @@ const router = express.Router();
  */
 router.post("/signup", userController.signup);
 
+router.post("/register", authMiddleware, userController.registerUser);
+
 /**
  * @swagger
  * /user:
@@ -86,7 +89,7 @@ router.post("/signup", userController.signup);
  *       500:
  *         description: Internal server error.
  */
-// router.get("/", userController.getAllUsers);
+router.get("/staff", authMiddleware, userController.getStaff);
 
 /**
  * @swagger
