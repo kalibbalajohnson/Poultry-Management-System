@@ -2,7 +2,7 @@ import Navbar2 from "../components/navBar2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import "chart.js/auto";
 import Layout from "@/components/layout";
-import { Feather, Home, Stethoscope, Users } from "lucide-react";
+import { Feather, Home, Boxes, Users } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
@@ -13,6 +13,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { useQuery } from "@tanstack/react-query";
+import { Staff } from "@/components/dataTable/staffColumns";
+import { House } from "@/components/dataTable/houseColumns";
+import { Batch } from "@/components/dataTable/batchColumns";
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -35,6 +39,77 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const DashboardPage: React.FC = () => {
+  const accessToken = localStorage.getItem('accessToken');
+  const { data: staff = [] } = useQuery<Staff[]>({
+    queryKey: ['staff'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('http://92.112.180.180:3000/api/v1/user/staff', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch staff data');
+        return res.json();
+      } catch (err) {
+        console.error('Failed to fetch staff data:', err);
+        throw err;
+      }
+    },
+    refetchInterval: 3000,
+  });
+
+  const { data: houses = [] } = useQuery<House[]>({
+    queryKey: ['houses'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('http://92.112.180.180:3000/api/v1/house', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch house data');
+        return res.json();
+      } catch (err) {
+        console.error('Failed to fetch house data:', err);
+        throw err;
+      }
+    },
+    refetchInterval: 3000,
+  });
+
+  const { data: batches = [] } = useQuery<Batch[]>({
+    queryKey: ['batches'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('http://92.112.180.180:3000/api/v1/batch', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch batch data');
+        return res.json();
+      } catch (err) {
+        console.error('Failed to fetch batch data:', err);
+        throw err;
+      }
+    },
+    refetchInterval: 3000,
+  });
+
+  const batchesCount = batches?.length;
+  const birds = batches
+    ?.filter((batch) => batch.isArchived !== true)
+    .reduce((total, batch) => total + (batch.quantity || 0), 0);
+  const housesCount = houses?.filter((house) => house.isMonitored === true).length;
+  const staffCount = staff?.filter((person) => person.role === "Worker").length;
+
   return (
     <Layout>
       <div className="min-h-screen flex flex-col">
@@ -49,10 +124,10 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
               {[
-                { title: "Birds", value: 50000, icon: <Feather size={24} className="text-gray-700" /> },
-                { title: "Houses Monitored", value: 10, icon: <Home size={24} className="text-gray-700" /> },
-                { title: "Diagnoses", value: 1000, icon: <Stethoscope size={24} className="text-gray-700" /> },
-                { title: "Staff", value: 200, icon: <Users size={24} className="text-gray-700" /> },
+                { title: "Total Birds", value: birds, icon: <Feather size={24} className="text-gray-700" /> },
+                { title: "Houses Monitored", value: housesCount, icon: <Home size={24} className="text-gray-700" /> },
+                { title: "Batches", value: batchesCount, icon: <Boxes size={24} className="text-gray-700" /> },
+                { title: "Workers", value: staffCount, icon: <Users size={24} className="text-gray-700" /> },
               ].map((sensor, index) => (
                 <Card
                   key={index}

@@ -42,7 +42,7 @@ const houseSchema = z.object({
 
 type FormData = z.infer<typeof houseSchema>;
 
-function HousingPage() {
+function HousesPage() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -194,4 +194,4 @@ function HousingPage() {
   );
 }
 
-export default HousingPage;
+export default HousesPage;
