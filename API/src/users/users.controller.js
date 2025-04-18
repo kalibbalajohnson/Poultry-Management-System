@@ -56,7 +56,7 @@ const registerUser = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const { firstName, lastName, role, email, password } = req.body;
+    const { firstName, lastName, role, contact, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -71,6 +71,7 @@ const registerUser = async (req, res) => {
       lastName,
       role,
       email,
+      contact,
       password: hashedPassword,
     });
 

@@ -13,12 +13,13 @@ import {
 
 export type Batch = {
   id: string
-  batchName: string
+  name: string
   arrivalDate: Date
   ageAtArrival: number
   chickenType: string
   quantity: number
   supplier: string
+  isArchived: boolean
 }
 
 export const columns: ColumnDef<Batch>[] = [

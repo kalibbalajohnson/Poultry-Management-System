@@ -1,6 +1,7 @@
 import * as React from "react"
+import { useEffect, useState } from "react"
 import { GalleryVerticalEnd } from "lucide-react"
-import { Calendar, PieChart, House, Search, Settings, BarChart, Users, PlusCircle } from "lucide-react";
+import { Calendar, PieChart, House, Search, Settings, BarChart, Users } from "lucide-react"
 
 import {
   Sidebar,
@@ -16,62 +17,95 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: PieChart,
-      isActive: true,
-    },
-    {
-      title: "Birds and Housing",
-      url: "",
-      icon: House,
-      items: [
-        {
-          title: "Birds",
-          url: "/birds",
-        },
-        {
-          title: "Housing",
-          url: "/housing"
-        }],
-    },
-    {
-      title: "Production",
-      url: "/production",
-      icon: Calendar,
-    },
-    {
-      title: "Stock",
-      url: "/stock",
-      icon: BarChart,
-    },
-    {
-      title: "Immunization",
-      url: "/immunization",
-      icon: PlusCircle,
-    },
-    {
-      title: "Disease Diagnosis",
-      url: "/diagnosis",
-      icon: Search,
-    },
-    {
-      title: "Staff",
-      url: "/staff",
-      icon: Users,
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
-    },
-  ],
-}
+const fullNav = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: PieChart,
+    isActive: true,
+  },
+  {
+    title: "Birds and Housing",
+    url: "",
+    icon: House,
+    items: [
+      {
+        title: "Birds",
+        url: "/birds",
+      },
+      {
+        title: "Housing",
+        url: "/houses",
+      },
+    ],
+  },
+  {
+    title: "Production",
+    url: "/production",
+    icon: Calendar,
+  },
+  {
+    title: "Stock",
+    url: "/stock",
+    icon: BarChart,
+  },
+  // {
+  //   title: "Immunization",
+  //   url: "/immunization",
+  //   icon: PlusCircle,
+  // },
+
+  {
+    title: "Disease Diagnosis",
+    url: "/diagnosis",
+    icon: Search,
+  },
+  {
+    title: "Staff",
+    url: "/staff",
+    icon: Users,
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
+]
+
+const workerNav = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: PieChart,
+    isActive: true,
+  },
+  {
+    title: "Production",
+    url: "/production",
+    icon: Calendar,
+  },
+  {
+    title: "Disease Diagnosis",
+    url: "/diagnosis",
+    icon: Search,
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [menuItems, setMenuItems] = useState(fullNav)
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user")
+    if (storedUser) {
+      const user = JSON.parse(storedUser)
+      if (user.role === "Worker") {
+        setMenuItems(workerNav)
+      } else {
+        setMenuItems(fullNav)
+      }
+    }
+  }, [])
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -94,7 +128,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {data.navMain.map((item) => (
+            {menuItems.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild isActive={item.isActive}>
                   <a href={item.url} className="font-medium">

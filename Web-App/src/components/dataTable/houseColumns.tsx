@@ -10,13 +10,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Link } from "react-router-dom"
 
 export type House = {
   id: string
   name: string
   capacity: number
   houseType: string
-  isMonitored: string
+  isMonitored: boolean
   createdAt: string
   updatedAt: string
 }
@@ -91,9 +92,11 @@ export const columns: ColumnDef<House>[] = [
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(house.id)}
             >
-              Copy House ID
+              Edit
             </DropdownMenuItem>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={`/house/${house.id}`}>View Details</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Delete House</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

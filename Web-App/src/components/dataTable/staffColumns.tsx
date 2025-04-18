@@ -15,7 +15,7 @@ export type Staff = {
   id: string;
   firstName: string;
   lastName: string;
-  userRole: string;
+  role: string;
   email: string;
   contact: string;
   password: string;
@@ -65,10 +65,10 @@ export const columns: ColumnDef<Staff>[] = [
     accessorKey: "role",
     header: "Role",
   },
-  // {
-  //   accessorKey: "contact",
-  //   header: "Contact",
-  // },
+  {
+    accessorKey: "contact",
+    header: "Contact",
+  },
   {
     accessorKey: "email",
     header: "Email",

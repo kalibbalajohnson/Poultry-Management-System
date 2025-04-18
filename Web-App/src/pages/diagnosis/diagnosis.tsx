@@ -46,6 +46,7 @@ interface Diagnosis {
 
 function DiagnosisPage() {
     const [loading, setLoading] = useState(false);
+    const [open, setOpen] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(diagnosisSchema),
@@ -93,6 +94,7 @@ function DiagnosisPage() {
 
             form.reset();
             setLoading(false);
+            setOpen(false);
         } catch (err) {
             console.error('Error submitting diagnosis:', err);
         }
@@ -126,7 +128,7 @@ function DiagnosisPage() {
                 <div className="bg-white px-8 py-5">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-gray-800">Disease Diagnosis</h2>
-                        <Dialog>
+                        <Dialog open={open} onOpenChange={setOpen}>
                             <DialogTrigger>
                                 <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
                                     Add Diagnosis

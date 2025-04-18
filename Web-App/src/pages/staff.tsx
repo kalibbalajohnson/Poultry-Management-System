@@ -26,7 +26,7 @@ const userSchema = z.object({
     lastName: z.string().min(1, "Last Name is required"),
     role: z.string().min(1, "Role is required"),
     email: z.string().min(1, "email is required"),
-    // contact: z.string().min(1, "contact is required"),
+    contact: z.string().min(1, "contact is required"),
     password: z.string().min(1, "password is required"),
 });
 
@@ -43,7 +43,7 @@ function StaffPage() {
             lastName: "",
             role: "",
             email: "",
-            // contact: "",
+            contact: "",
             password: "",
         },
     });
@@ -173,7 +173,7 @@ function StaffPage() {
                                                     </FormItem>
                                                 )}
                                             />
-                                            {/* <FormField
+                                            <FormField
                                                 control={form.control}
                                                 name="contact"
                                                 render={({ field }) => (
@@ -185,7 +185,7 @@ function StaffPage() {
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
-                                            /> */}
+                                            />
                                             <FormField
                                                 control={form.control}
                                                 name="email"

@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Filter } from "lucide-react" // Import Filter icon
+import { MoreHorizontal } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,13 +10,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 
 export type Production = {
-  houseBatchId: string
-  date: Date
-  metricName: string
-  metricValue: number
+  batchId: {
+    name: string
+  }
+  date: string
+  numberOfDeadBirds: number
+  numberOfEggsCollected: number
+  createdAt: string
+  updatedAt: string
 }
 
 export const columns: ColumnDef<Production>[] = [
@@ -43,59 +46,38 @@ export const columns: ColumnDef<Production>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "houseBatchId",
-    header: "Batch ID",
+    accessorKey: "batchId",
+    header: "Batch",
+    cell: ({ row }) => {
+      const batch = row.original.batchId;
+      return  batch;
+    },
   },
   {
     accessorKey: "date",
     header: "Date",
     cell: ({ row }) => {
-      const date = row.getValue("date") as Date
-      return date.toLocaleDateString()
+      const rawDate = row.getValue("date") as string;
+      const formattedDate = new Date(rawDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+      return <span>{formattedDate}</span>;
     },
   },
   {
-    accessorKey: "metricName",
-    header: ({ column }) => {
-      return (
-        <div className="flex items-center">
-          <span>Metric Name</span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="p-2">
-                <Input
-                  type="text"
-                  placeholder="Filter by metric..."
-                  value={(column.getFilterValue() as string) ?? ""}
-                  onChange={(e) => column.setFilterValue(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )
-    },
-    filterFn: (row, id, value) => {
-      return row.getValue(id).toLowerCase().includes(value.toLowerCase())
-    },
-    enableSorting: false, // Disable sorting for this column
+    accessorKey: "numberOfEggsCollected",
+    header: "Eggs Collected",
   },
   {
-    accessorKey: "metricValue",
-    header: "Metric Value",
+    accessorKey: "numberOfDeadBirds",
+    header: "Dead Birds",
   },
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
-      const production = row.original
-
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -105,11 +87,6 @@ export const columns: ColumnDef<Production>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(production.houseBatchId)}
-            >
-              Copy Batch ID
-            </DropdownMenuItem>
             <DropdownMenuItem>Edit</DropdownMenuItem>
             <DropdownMenuItem>Delete Production</DropdownMenuItem>
           </DropdownMenuContent>

@@ -12,26 +12,21 @@ const batchSchema = new mongoose.Schema(
     chickenType: { type: String, required: true },
     quantity: { type: Number, required: true },
     supplier: { type: String, required: true },
+    isArchived: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
-
 const Batch = mongoose.model("Batch", batchSchema);
-export default Batch;
 
-// // models/BatchAllocation.ts
-// import mongoose from "mongoose";
-// import { v4 as uuidv4 } from "uuid";
+const batchAllocationSchema = new mongoose.Schema(
+  {
+    id: { type: String, default: uuidv4, unique: true, required: true },
+    batchId: { type: String, required: true },
+    houseId: { type: String, required: true },
+    quantity: { type: Number, required: true },
+  },
+  { timestamps: true }
+);
+const BatchAllocation = mongoose.model("BatchAllocation", batchAllocationSchema);
 
-// const batchAllocationSchema = new mongoose.Schema(
-//   {
-//     id: { type: String, default: uuidv4, unique: true, required: true },
-//     batchId: { type: String, required: true },
-//     houseId: { type: String, required: true },
-//     quantity: { type: Number, required: true },
-//   },
-//   { timestamps: true }
-// );
-
-// const BatchAllocation = mongoose.model("BatchAllocation", batchAllocationSchema);
-// export default BatchAllocation;
+export { Batch, BatchAllocation };

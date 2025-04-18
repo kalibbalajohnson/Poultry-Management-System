@@ -6,10 +6,11 @@ import SignUpPage from './pages/signup';
 import LoginPage from './pages/login';
 import QueryProvider from '@/components/QueryProvider';
 import BatchPage from './pages/birds';
-import HousingPage from './pages/housing';
+import HousesPage from './pages/houses/houses';
+import HouseDetailPage from './pages/houses/houseDetails';
 import ImmunizationPage from './pages/immunization';
 import DiagnosisPage from './pages/diagnosis/diagnosis';
-import DiagnosisDetail from './pages/diagnosis/diagnosisDetail';
+import DiagnosisDetailPage from './pages/diagnosis/diagnosisDetails';
 import StaffPage from './pages/staff';
 import SettingsPage from './pages/settings';
 import ProductionPage from './pages/production';
@@ -19,14 +20,18 @@ function App() {
     <QueryProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomePage heading={''} description1={''} description2={''} image={{
+            src: '',
+            alt: ''
+          }} />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/stock" element={<StockPage />} />
           <Route path="/immunization" element={<ImmunizationPage />} />
           <Route path="/birds" element={<BatchPage />} />
-          <Route path="/housing" element={<HousingPage />} />
+          <Route path="/houses" element={<HousesPage />} />
+          <Route path="/house/:id" element={<HouseDetailPage />} />
           <Route path="/diagnosis" element={<DiagnosisPage />} />
-          <Route path="/diagnosis/:id" element={<DiagnosisDetail />} />
+          <Route path="/diagnosis/:id" element={<DiagnosisDetailPage />} />
           <Route path="/staff" element={<StaffPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/production" element={<ProductionPage />} />

@@ -17,52 +17,98 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Batch } from '@/components/dataTable/batchColumns';
 
-// Define the schema for production
 const productionSchema = z.object({
-  houseBatchId: z.string().min(1, "Batch ID is required"),
+  batchId: z.string().min(1, "Batch ID is required"),
   date: z.string().min(1, "Date is required"),
-  metricName: z.string().min(1, "Metric name is required"),
-  metricValue: z.coerce.number().min(0, "Metric value must be at least 0"),
+  numberOfDeadBirds: z.coerce.number().min(0, "Dead Birds must be at least 0"),
+  numberOfEggsCollected: z.coerce.number().min(1, "Eggs Collected must be at least 0"),
 });
 
-// Sample data for production
-const data: Production[] = [
-  {
-    houseBatchId: "BATCH001",
-    date: new Date("2023-10-01"),
-    metricName: "Egg Production",
-    metricValue: 500,
-  },
-  {
-    houseBatchId: "BATCH002",
-    date: new Date("2023-10-02"),
-    metricName: "Feed Consumption",
-    metricValue: 1200,
-  },
-  {
-    houseBatchId: "BATCH003",
-    date: new Date("2023-10-03"),
-    metricName: "Water Usage",
-    metricValue: 300,
-  },
-];
+type FormData = z.infer<typeof productionSchema>;
 
 function ProductionPage() {
-  const form = useForm({
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const accessToken = localStorage.getItem('accessToken');
+
+  const form = useForm<FormData>({
     resolver: zodResolver(productionSchema),
     defaultValues: {
-      houseBatchId: "",
+      batchId: "",
       date: "",
-      metricName: "",
-      metricValue: 0,
+      numberOfDeadBirds: 0,
+      numberOfEggsCollected: 0,
+    }
+  });
+
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        'http://92.112.180.180:3000/api/v1/production',
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      console.log('New Production Record Added:', res.data);
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      console.error(
+        'Production creation error:',
+        error instanceof Error ? error.message : error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const { data: production = [] } = useQuery<Production[]>({
+    queryKey: ['production'],
+    queryFn: async () => {
+      const res = await fetch('http://92.112.180.180:3000/api/v1/production', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to fetch production');
+      return res.json();
     },
   });
 
-  const onSubmit = (values: z.infer<typeof productionSchema>) => {
-    console.log("New Production Added:", values);
-    form.reset();
-  };
+  const { data: batches = [] } = useQuery<Batch[]>({
+    queryKey: ['batches'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('http://92.112.180.180:3000/api/v1/batch',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+
+        if (!res.ok) throw new Error('Failed to fetch batch data');
+        return res.json();
+      } catch (err) {
+        console.error('Failed to fetch batch data:', err);
+        throw err;
+      }
+    },
+    refetchInterval: 3000,
+  });
 
   return (
     <Layout>
@@ -70,31 +116,42 @@ function ProductionPage() {
       <div className="w-full space-y-4">
         <div className="rounded-lg bg-white px-8 py-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold">Production Data</h2> {/* Update title */}
-            <Dialog>
+            <h2 className="text-2xl font-semibold">Production</h2>
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger>
                 <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
                   Add Production
                 </button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className='max-w-xl'>
                 <DialogHeader>
-                  <DialogTitle>Add Production</DialogTitle> {/* Update title */}
+                  <DialogTitle>Add Production</DialogTitle>
                   <DialogDescription>
                     Fill in the details below to add new production data.
                   </DialogDescription>
                 </DialogHeader>
                 <section className="p-2">
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="houseBatchId"
+                        name="batchId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Batch ID</FormLabel>
+                            <FormLabel>Batch</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter batch ID" {...field} />
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a batch" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {batches?.map((batch) => (
+                                    <SelectItem key={batch.id} value={batch.id}>
+                                      {batch.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -115,32 +172,10 @@ function ProductionPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="metricName"
+                        name="numberOfEggsCollected"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Metric Name</FormLabel>
-                            <FormControl>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select metric name" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Egg Production">Egg Production</SelectItem>
-                                  <SelectItem value="Feed Consumption">Feed Consumption</SelectItem>
-                                  <SelectItem value="Water Usage">Water Usage</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="metricValue"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Metric Value</FormLabel>
+                            <FormLabel>Eggs Collected</FormLabel>
                             <FormControl>
                               <Input type="number" placeholder="Enter metric value" {...field} />
                             </FormControl>
@@ -148,9 +183,24 @@ function ProductionPage() {
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" className="w-full bg-green-700 hover:bg-green-800">
-                        Add Production
-                      </Button>
+                      <FormField
+                        control={form.control}
+                        name="numberOfDeadBirds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dead Birds</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="Enter metric value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="col-span-1 md:col-span-2">
+                        <Button type="submit" className="w-full bg-green-700 hover:bg-green-800">
+                          {loading ? 'Adding...' : 'Add Production'}
+                        </Button>
+                      </div>
                     </form>
                   </Form>
                 </section>
@@ -158,7 +208,7 @@ function ProductionPage() {
             </Dialog>
           </div>
           <div className="container mx-auto mt-4">
-            <DataTable columns={columns} data={data} /> {/* Use Production columns and data */}
+            <DataTable columns={columns} data={production} />
           </div>
         </div>
       </div>

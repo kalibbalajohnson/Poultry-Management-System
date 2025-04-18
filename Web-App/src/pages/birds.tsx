@@ -39,7 +39,7 @@ function BatchPage() {
   const form = useForm<FormData>({
     resolver: zodResolver(batchSchema),
     defaultValues: {
-      batchName: "",
+      name: "",
       arrivalDate: "",
       ageAtArrival: 0,
       chickenType: "",
