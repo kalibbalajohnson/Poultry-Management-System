@@ -20,10 +20,7 @@ function App() {
     <QueryProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage heading={''} description1={''} description2={''} image={{
-            src: '',
-            alt: ''
-          }} />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/stock" element={<StockPage />} />
           <Route path="/immunization" element={<ImmunizationPage />} />
