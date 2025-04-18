@@ -5,9 +5,9 @@ import { ArrowRight } from "lucide-react";
 
 interface Hero1Props {
   badge?: string;
-  heading: string;
-  description1: string;
-  description2: string;
+  heading?: string;
+  description1?: string;
+  description2?: string;
   buttons?: {
     primary?: {
       text: string;
@@ -18,37 +18,39 @@ interface Hero1Props {
       url: string;
     };
   };
-  image: {
+  image?: {
     src: string;
     alt: string;
   };
 }
 
-const HomePage = ({
-  heading = "Welcome to PoultryPal",
-  description1 = "Manage your poultry farm’s daily records efficiently and effortlessly.Our application harnesses the power of AI and machine learning to provide predictive insights, enabling you to optimize operations like never before.",
-  description2 = "From tracking egg production to analyzing feed efficiency, our intelligent models help you make informed decisions that lead to better productivity and profitability.",
-  buttons = {
-    primary: {
-      text: "Get Started",
-      url: "signup",
+const HomePage = (props?: Hero1Props) => {
+  const {
+    heading = "Welcome to PoultryPal",
+    description1 = "Manage your poultry farm’s daily records efficiently and effortlessly. Our application harnesses the power of AI and machine learning to provide predictive insights, enabling you to optimize operations like never before.",
+    description2 = "From tracking egg production to analyzing feed efficiency, our intelligent models help you make informed decisions that lead to better productivity and profitability.",
+    buttons = {
+      primary: {
+        text: "Get Started",
+        url: "signup",
+      },
+      secondary: {
+        text: "Dashboard",
+        url: "login",
+      },
     },
-    secondary: {
-      text: "Dashboard",
-      url: "login",
+    image = {
+      src: "farm.jpg",
+      alt: "Hero section demo image showing interface components",
     },
-  },
-  image = {
-    src: "farm.jpg",
-    alt: "Hero section demo image showing interface components",
-  },
-}: Hero1Props) => {
+  } = props || {};
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <section className="px-16 py-8 mb-16 flex-1">
         <div className="container">
-          <div className="grid items-cener gap-8 lg:grid-cols-2">
+          <div className="grid items-center gap-8 lg:grid-cols-2">
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
               <h1 className="my-6 text-3xl font-bold text-pretty lg:text-4xl">
                 {heading}
