@@ -13,6 +13,7 @@ import houseRoutes from "./src/house/house.routes.js";
 import stockRoutes from "./src/stock/stock.routes.js";
 import batchRoutes from "./src/batch/batch.routes.js";
 import productionRoutes from "./src/production/production.routes.js";
+import monitoringRoutes from "./src/monitoring/monitoring.routes.js";
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/v1/house", houseRoutes);
 app.use("/api/v1/stock", stockRoutes);
 app.use("/api/v1/batch", batchRoutes);
 app.use("/api/v1/production", productionRoutes);
+app.use("/api/v1/data", monitoringRoutes);
 
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`);
