@@ -93,8 +93,11 @@ const DiagnosisDetailPage = () => {
                                         ? `${new Date(diagnosis.createdAt).toDateString()} ${new Date(diagnosis.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`
                                         : "Date unknown"}
                                 </p>
-                                <button className="rounded bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
+                                {/* <button className="rounded bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
                                     Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence * 100)}%` : "Unknown"}
+                                </button> */}
+                                <button className="rounded bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
+                                    Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence)}%` : "Unknown"}
                                 </button>
                             </div>
                         </div>

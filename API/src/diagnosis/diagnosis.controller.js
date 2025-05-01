@@ -43,7 +43,7 @@ const getDiagnosesByFarm = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const diagnoses = await Diagnosis.find({ farmId: user.farmId });
+    const diagnoses = await Diagnosis.find({ farmId: user.farmId }).sort({ createdAt: -1 });
 
     res.status(200).json(diagnoses);
   } catch (error) {

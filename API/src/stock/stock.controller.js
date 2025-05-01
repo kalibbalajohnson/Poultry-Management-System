@@ -11,7 +11,7 @@ const getStock = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const stocks = await Stock.find({ farmId: user.farmId });
+    const stocks = await Stock.find({ farmId: user.farmId }).sort({ createdAt: -1 });
     res.status(200).json(stocks);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });

@@ -32,7 +32,7 @@ app.use("/api/v1/house", houseRoutes);
 app.use("/api/v1/stock", stockRoutes);
 app.use("/api/v1/batch", batchRoutes);
 app.use("/api/v1/production", productionRoutes);
-app.use("/api/v1/data", monitoringRoutes);
+app.use("/api/v1/monitoring", monitoringRoutes);
 
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`);

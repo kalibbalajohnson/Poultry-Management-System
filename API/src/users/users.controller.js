@@ -97,7 +97,7 @@ const getStaff = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const staff = await User.find({ farmId: user.farmId });
+    const staff = await User.find({ farmId: user.farmId }).sort({ createdAt: -1 });
 
     res.status(200).json(staff);
   } catch (error) {
