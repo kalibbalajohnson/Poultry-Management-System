@@ -11,7 +11,7 @@ const getHouses = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const houses = await House.find({ farmId: user.farmId });
+    const houses = await House.find({ farmId: user.farmId }).sort({ createdAt: -1 });
 
     res.status(200).json(houses);
   } catch (error) {

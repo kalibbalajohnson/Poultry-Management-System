@@ -41,13 +41,15 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Batch } from "@/components/dataTable/batchColumns";
+import { Switch } from "@/components/ui/switch"
+
 
 interface House {
   id: string;
   name: string;
   capacity: number;
   houseType: string;
-  isMonitored: string;
+  isMonitored: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -57,6 +59,15 @@ interface Allocation {
   batchId: string;
   houseId: string;
   quantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SensorData {
+  id: string;
+  houseId: string;
+  temperature: number;
+  humidity: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +88,14 @@ const HouseDetailPage = () => {
   const [open1, setOpen1] = useState(false);
   const [open2, setOpen2] = useState(false);
   const [open3, setOpen3] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isMonitored, setIsMonitored] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (house?.isMonitored !== undefined) {
+      setIsMonitored(house.isMonitored);
+    }
+  }, [house]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(allocationSchema),
@@ -175,6 +194,7 @@ const HouseDetailPage = () => {
       if (!res.ok) throw new Error('Failed to fetch houses');
       return res.json();
     },
+    refetchInterval: 2000,
   });
 
   useEffect(() => {
@@ -190,6 +210,54 @@ const HouseDetailPage = () => {
   const totalBoxes = 20;
   const filledBoxes = Math.floor((fillPercentage / 100) * totalBoxes);
 
+
+  const onToggle = async (checked: boolean) => {
+    setLoading(true);
+    try {
+      const res = await axios.patch(
+        `http://92.112.180.180:3000/api/v1/house/${id}`,
+        { isMonitored: checked },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      setIsMonitored(checked);
+      console.log('House monitoring status updated:', res.data);
+    } catch (error) {
+      console.error(
+        'Error updating monitoring status:',
+        error instanceof Error ? error.message : error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const {
+    data: sensorData = [],
+  } = useQuery<SensorData[]>({
+    queryKey: ['sensorData'],
+    queryFn: async () => {
+      const res = await fetch(`http://92.112.180.180:3000/api/v1/monitoring/house/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to fetch sensor data');
+      return res.json();
+    },
+    refetchInterval: 3000,
+  });
+
+  if (isError) {
+    console.error('Error fetching allocation:', error);
+  }
+
   return (
     <Layout>
       <Navbar2 />
@@ -197,6 +265,59 @@ const HouseDetailPage = () => {
         <div className="mx-auto space-y-8">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">House {house?.name || 'Unknown'}</h2>
+            {house?.isMonitored === true ? (
+              <>
+                <div className="flex items-center justify-between p-4 bg-white rounded-lg gap-3">
+                  <span className="text-sm font-medium text-gray-700">
+                    Monitoring {loading && <span className="text-xs">(updating...)</span>}
+                  </span>
+                  <Switch checked={isMonitored} onCheckedChange={onToggle} />
+                </div>
+                <div className="rounded-xl p-4 flex items-center gap-4 bg-white">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600">
+                    🌡️
+                  </div>
+                  <div>
+                    <h3 className="text-sm text-gray-500">Temperature</h3>
+                    <p
+                      className={`text-lg font-semibold ${sensorData[0]?.temperature < 18
+                        ? 'text-red-600'
+                        : sensorData[0]?.temperature > 27
+                          ? 'text-red-600'
+                          : 'text-gray-800'
+                        }`}
+                    >
+                      {sensorData[0]?.temperature?.toFixed(1)}°C
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-xl p-4 flex items-center gap-4 bg-white mt-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 text-green-600">
+                    💧
+                  </div>
+                  <div>
+                    <h3 className="text-sm text-gray-500">Humidity</h3>
+                    <p
+                      className={`text-lg font-semibold ${sensorData[0]?.humidity < 30
+                        ? 'text-red-600'
+                        : sensorData[0]?.humidity > 60
+                          ? 'text-red-600'
+                          : 'text-gray-800'
+                        }`}
+                    >
+                      {sensorData[0]?.humidity?.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-between p-4 bg-white rounded-lg gap-3">
+                <span className="text-sm font-medium text-gray-700">
+                  Monitoring {loading && <span className="text-xs">(updating...)</span>}
+                </span>
+                <Switch checked={isMonitored} onCheckedChange={onToggle} />
+              </div>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <button className="flex items-center gap-1 px-4 py-2 transition rounded-full bg-green-700 text-sm font-semibold text-white duration-200 hover:bg-green-800">
@@ -313,7 +434,7 @@ const HouseDetailPage = () => {
                 <div>
                   <p className="text-sm text-gray-500">Monitoring</p>
                   <h3 className="text-xl font-semibold text-gray-700">
-                    {house?.isMonitored === 'true' ? 'Active' : 'Not Active'}
+                    {house?.isMonitored === true ? 'Enabled' : 'Disabled'}
                   </h3>
                 </div>
               </div>

@@ -12,7 +12,7 @@ const getBatches = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const batches = await Batch.find({ farmId: user.farmId });
+    const batches = await Batch.find({ farmId: user.farmId }).sort({ createdAt: -1 });
 
     res.status(200).json(batches);
   } catch (error) {
@@ -207,7 +207,7 @@ const getBatchAllocations = async (req, res) => {
       return res.status(404).json({ message: "Batch not found" });
     }
 
-    const allocations = await BatchAllocation.find({ batchId });
+    const allocations = await BatchAllocation.find({ batchId }).sort({ createdAt: -1 });
     res.status(200).json(allocations);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -232,7 +232,7 @@ const getHouseBatchAllocations = async (req, res) => {
         .json({ message: "House not found or unauthorized" });
     }
 
-    const allocations = await BatchAllocation.find({ houseId: houseId });
+    const allocations = await BatchAllocation.find({ houseId: houseId }).sort({ createdAt: -1 });
     res.status(200).json(allocations);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });

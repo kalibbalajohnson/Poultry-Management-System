@@ -15,7 +15,7 @@ const getProduction = async (req, res) => {
 
     const batchIds = batches.map((batch) => batch.id);
 
-    const production = await Production.find({ batchId: { $in: batchIds } });
+    const production = await Production.find({ batchId: { $in: batchIds } }).sort({ createdAt: -1 });
 
     res.status(200).json(production);
   } catch (error) {
