@@ -1,4 +1,4 @@
-import { useState} from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { DataTable } from '@/components/dataTable/dataTable';
 import {
@@ -22,9 +22,10 @@ import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { Feather, Boxes, Users, AlertTriangle } from "lucide-react";
+import { Feather, Boxes, Users, AlertTriangle, Edit, Archive, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { ColumnDef } from "@tanstack/react-table";
 
 const batchSchema = z.object({
   name: z.string().min(1, "Batch name is required"),
@@ -33,6 +34,7 @@ const batchSchema = z.object({
   chickenType: z.string().min(1, "Chicken type is required"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   supplier: z.string().min(1, "Supplier is required"),
+  isArchived: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof batchSchema>;
@@ -41,7 +43,9 @@ function BatchPage() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
-  const navigate = useNavigate();
+  const [editMode, setEditMode] = useState(false);
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(batchSchema),
@@ -52,17 +56,99 @@ function BatchPage() {
       chickenType: "",
       quantity: 0,
       supplier: "",
+      isArchived: false,
     },
   });
+
+  // Reset form and selected batch when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setEditMode(false);
+      setSelectedBatch(null);
+      form.reset({
+        name: "",
+        arrivalDate: "",
+        ageAtArrival: 0,
+        chickenType: "",
+        quantity: 0,
+        supplier: "",
+        isArchived: false,
+      });
+    }
+  }, [open, form]);
+
+  // Populate form when editing
+  useEffect(() => {
+    if (selectedBatch && editMode) {
+      form.reset({
+        name: selectedBatch.name,
+        arrivalDate: new Date(selectedBatch.arrivalDate).toISOString().split('T')[0],
+        ageAtArrival: selectedBatch.ageAtArrival,
+        chickenType: selectedBatch.chickenType,
+        quantity: selectedBatch.quantity,
+        supplier: selectedBatch.supplier,
+        isArchived: selectedBatch.isArchived || false,
+      });
+    }
+  }, [selectedBatch, editMode, form]);
 
   const accessToken = localStorage.getItem('accessToken');
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const res = await axios.post(
-        'http://92.112.180.180:3000/api/v1/batch',
-        data,
+      if (editMode && selectedBatch) {
+        // Update existing batch
+        const res = await axios.patch(
+          `http://92.112.180.180:3000/api/v1/batch/${selectedBatch.id}`,
+          data,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
+        );
+        console.log('Batch Updated:', res.data);
+      } else {
+        // Create new batch
+        const res = await axios.post(
+          'http://92.112.180.180:3000/api/v1/batch',
+          data,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
+        );
+        console.log('New Batch Added:', res.data);
+      }
+      
+      form.reset();
+      setOpen(false);
+      setEditMode(false);
+      setSelectedBatch(null);
+      refetch(); // Refresh data after adding/updating batch
+    } catch (error) {
+      console.error(
+        editMode ? 'Batch update error:' : 'Batch creation error:',
+        error instanceof Error ? error.message : error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to handle archiving a batch
+  const handleArchiveBatch = async () => {
+    if (!selectedBatch) return;
+    
+    setLoading(true);
+    try {
+      await axios.patch(
+        `http://92.112.180.180:3000/api/v1/batch/${selectedBatch.id}`,
+        { isArchived: !selectedBatch.isArchived },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -70,14 +156,13 @@ function BatchPage() {
           }
         }
       );
-
-      console.log('New Batch Added:', res.data);
-      form.reset();
-      setOpen(false);
-      refetch(); // Refresh data after adding new batch
+      
+      setArchiveDialogOpen(false);
+      setSelectedBatch(null);
+      refetch(); // Refresh data after archiving
     } catch (error) {
       console.error(
-        'Batch creation error:',
+        'Batch archive error:',
         error instanceof Error ? error.message : error
       );
     } finally {
@@ -129,6 +214,47 @@ function BatchPage() {
     return batch.chickenType === selectedFilter;
   });
 
+  // Create custom columns with edit and archive actions
+  const enhancedColumns: ColumnDef<Batch>[] = [
+    ...columns.slice(0, -1), // Use all original columns except the last one (actions)
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }: { row: any }) => {
+        const batch = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setEditMode(true);
+                setSelectedBatch(batch);
+                setOpen(true);
+              }}
+              className="h-8 w-8 p-0"
+            >
+              <Edit className="h-4 w-4" />
+              <span className="sr-only">Edit</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setSelectedBatch(batch);
+                setArchiveDialogOpen(true);
+              }}
+              className="h-8 w-8 p-0"
+            >
+              <Archive className="h-4 w-4" />
+              <span className="sr-only">Archive</span>
+            </Button>
+          </div>
+        );
+      },
+    }
+  ];
+
   return (
     <Layout>
       <Navbar2 />
@@ -148,9 +274,11 @@ function BatchPage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add New Batch</DialogTitle> 
+                  <DialogTitle>{editMode ? "Edit Batch" : "Add New Batch"}</DialogTitle> 
                   <DialogDescription>
-                    Fill in the details below to add a new batch of birds to your farm.
+                    {editMode 
+                      ? "Update the details for this batch of birds." 
+                      : "Fill in the details below to add a new batch of birds to your farm."}
                   </DialogDescription>
                 </DialogHeader>
                 <section className="py-4">
@@ -245,13 +373,36 @@ function BatchPage() {
                           </FormItem>
                         )}
                       />
+                      
+                      {editMode && (
+                        <FormField
+                          control={form.control}
+                          name="isArchived"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>Archived Status</FormLabel>
+                                <div className="text-xs text-muted-foreground">
+                                  Mark this batch as archived if it's no longer active
+                                </div>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
                     </div>
                     <DialogFooter className="mt-6">
                       <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel
                       </Button>
                       <Button type="submit" className="bg-green-700 hover:bg-green-800">
-                        {loading ? 'Adding...' : 'Add Batch'}
+                        {loading ? 'Processing...' : editMode ? 'Update Batch' : 'Add Batch'}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -260,6 +411,45 @@ function BatchPage() {
               </DialogContent>
             </Dialog>
           </div>
+
+          {/* Archive Confirmation Dialog */}
+          <Dialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>{selectedBatch?.isArchived ? "Unarchive Batch" : "Archive Batch"}</DialogTitle>
+                <DialogDescription>
+                  {selectedBatch?.isArchived 
+                    ? "This will make the batch active again. Are you sure you want to unarchive this batch?"
+                    : "This will hide the batch from active records. You can unarchive it later if needed."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="p-6 border rounded-lg flex items-center gap-3 bg-gray-50">
+                {selectedBatch?.isArchived ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <Archive className="h-5 w-5 text-amber-600" />
+                )}
+                <div>
+                  <h4 className="font-medium">{selectedBatch?.name}</h4>
+                  <p className="text-sm text-gray-500">
+                    {selectedBatch?.quantity} birds - {selectedBatch?.chickenType}
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setArchiveDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleArchiveBatch}
+                  variant="default"
+                  className={selectedBatch?.isArchived ? "bg-green-700 hover:bg-green-800" : "bg-amber-600 hover:bg-amber-700"}
+                >
+                  {loading ? 'Processing...' : selectedBatch?.isArchived ? 'Unarchive Batch' : 'Archive Batch'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Key statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -371,7 +561,7 @@ function BatchPage() {
                 </Button>
               </div>
             ) : (
-              <DataTable columns={columns} data={filteredBatches} />
+              <DataTable columns={enhancedColumns} data={filteredBatches} />
             )}
           </div>
 
