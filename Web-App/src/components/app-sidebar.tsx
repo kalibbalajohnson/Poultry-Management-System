@@ -49,11 +49,11 @@ const fullNav = [
     url: "/stock",
     icon: BarChart,
   },
-  // {
-  //   title: "Immunization",
-  //   url: "/immunization",
-  //   icon: PlusCircle,
-  // },
+  {
+    title: "Immunization",
+    url: "/immunization",
+    icon: PlusCircle,
+  },
 
   {
     title: "Disease Diagnosis",
@@ -83,6 +83,16 @@ const workerNav = [
     title: "Production",
     url: "/production",
     icon: Calendar,
+  },
+  {
+    title: "Stock",
+    url: "/stock",
+    icon: BarChart,
+  },
+  {
+    title: "Immunization",
+    url: "/immunization",
+    icon: PlusCircle,
   },
   {
     title: "Disease Diagnosis",
