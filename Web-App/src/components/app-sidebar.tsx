@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { GalleryVerticalEnd } from "lucide-react"
-import { Calendar, PieChart, House, Search, Settings, BarChart, Users } from "lucide-react"
+import { Calendar, PieChart, PlusCircle, House, Search, Settings, BarChart, Users } from "lucide-react"
 
 import {
   Sidebar,
