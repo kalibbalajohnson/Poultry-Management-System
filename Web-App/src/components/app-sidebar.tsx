@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { 
-  BarChart, Calendar, Home, Package, Search, 
+  BarChart, Calendar, Home, Package, Search, PlusCircle,
   Settings, Users, Menu, ChevronRight, X
 } from "lucide-react"
 

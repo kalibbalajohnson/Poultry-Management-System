@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight} from "lucide-react";
 import Footer from '@/components/footer';
 import Navbar from '@/components/navBar';
 
