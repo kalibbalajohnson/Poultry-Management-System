@@ -61,6 +61,11 @@ const fullNav = [
     icon: Package,
   },
   {
+    title: "Immunization",
+    url: "/immunization",
+    icon: PlusCircle,
+  },
+  {
     title: "Disease Diagnosis",
     url: "/diagnosis",
     icon: Search,
@@ -88,6 +93,16 @@ const workerNav = [
     title: "Production",
     url: "/production",
     icon: Calendar,
+  },
+  {
+    title: "Stock",
+    url: "/stock",
+    icon: BarChart,
+  },
+  {
+    title: "Immunization",
+    url: "/immunization",
+    icon: PlusCircle,
   },
   {
     title: "Disease Diagnosis",
