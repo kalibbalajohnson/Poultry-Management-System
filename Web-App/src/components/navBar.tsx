@@ -1,4 +1,5 @@
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { useState } from "react";
+import { Book, Menu, Shield, Phone, Sun, Moon, Monitor } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -21,6 +22,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 interface MenuItem {
   title: string;
@@ -64,27 +72,26 @@ const Navbar = ({
   menu = [
     { title: "Home", url: "/" },
     {
-      title: "Products",
+      title: "Features",
       url: "#",
       items: [
         {
-          title: "Blog",
-          description: "The latest industry news, updates, and info",
+          title: "Disease Diagnosis",
+          description: "AI-powered disease detection for early intervention",
+          icon: <Shield className="size-5 shrink-0" />,
+          url: "/diagnosis",
+        },
+        {
+          title: "Production Tracking",
+          description: "Monitor egg production and mortality rates efficiently",
           icon: <Book className="size-5 shrink-0" />,
-          url: "#",
+          url: "/production",
         },
         {
-          title: "Company",
-          description: "Our mission is to innovate and empower the world",
-          icon: <Trees className="size-5 shrink-0" />,
-          url: "#",
-        },
-        {
-          title: "Support",
-          description:
-            "Get in touch with our support team or visit our community forums",
-          icon: <Zap className="size-5 shrink-0" />,
-          url: "#",
+          title: "Environmental Monitoring",
+          description: "Track temperature, humidity, and other vital conditions",
+          icon: <Monitor className="size-5 shrink-0" />,
+          url: "/monitoring",
         },
       ],
     },
@@ -94,30 +101,20 @@ const Navbar = ({
       items: [
         {
           title: "Help Center",
-          description: "Get all the answers you need right here",
-          icon: <Zap className="size-5 shrink-0" />,
+          description: "Find answers to common questions about PoultryPal",
+          icon: <Book className="size-5 shrink-0" />,
           url: "#",
         },
         {
           title: "Contact Us",
-          description: "We are here to help you with any questions you have",
-          icon: <Sunset className="size-5 shrink-0" />,
-          url: "#",
-        },
-        {
-          title: "Terms of Service",
-          description: "Our terms and conditions for using our services",
-          icon: <Book className="size-5 shrink-0" />,
+          description: "Get in touch with our support team for assistance",
+          icon: <Phone className="size-5 shrink-0" />,
           url: "#",
         },
       ],
     },
     {
-      title: "Pricing",
-      url: "#",
-    },
-    {
-      title: "Blog",
+      title: "About Us",
       url: "#",
     },
   ],
@@ -126,15 +123,17 @@ const Navbar = ({
     signup: { text: "Sign up", url: "/signup" },
   },
 }: Navbar1Props) => {
+  const [activeTheme, setActiveTheme] = useState<string>("light");
+
   return (
-    <section className="pt-6 pb-2 mx-6">
-      <div className="container">
+    <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
+      <div className="container py-3 px-4 mx-auto">
         {/* Desktop Menu */}
-        <nav className="hidden justify-between lg:flex">
-          <div className="flex items-center gap-6">
+        <nav className="hidden justify-between items-center lg:flex">
+          <div className="flex items-center gap-8">
             <a href={logo.url} className="flex items-center gap-2">
               <img src={logo.src} className="w-8" alt={logo.alt} />
-              <span className="text-xl font-semibold">{logo.title}</span>
+              <span className="text-xl font-semibold text-green-700">{logo.title}</span>
             </a>
             <div className="flex items-center">
               <NavigationMenu>
@@ -144,36 +143,37 @@ const Navbar = ({
               </NavigationMenu>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
+          <div className="flex items-center gap-3">
+            <ThemeToggle activeTheme={activeTheme} setActiveTheme={setActiveTheme} />
+            <Button asChild variant="outline" size="sm" className="border-green-700 text-green-700 hover:bg-green-50">
               <a href={auth.login.url}>{auth.login.text}</a>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="bg-green-700 hover:bg-green-800">
               <a href={auth.signup.url}>{auth.signup.text}</a>
             </Button>
           </div>
         </nav>
         {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            <a href={logo.url} className="flex items-center gap-2">
-              <img src={logo.src} className="w-8" alt={logo.alt} />
-              <span className="text-lg font-semibold">{logo.title}</span>
-            </a>
+        <div className="flex items-center justify-between lg:hidden">
+          <a href={logo.url} className="flex items-center gap-2">
+            <img src={logo.src} className="w-8" alt={logo.alt} />
+            <span className="text-lg font-semibold text-green-700">{logo.title}</span>
+          </a>
+          <div className="flex items-center gap-2">
+            <ThemeToggle activeTheme={activeTheme} setActiveTheme={setActiveTheme} />
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <Menu className="size-5" />
+                  <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent className="overflow-y-auto">
-                <SheetHeader>
+                <SheetHeader className="mb-6">
                   <SheetTitle>
                     <a href={logo.url} className="flex items-center gap-2">
                       <img src={logo.src} className="w-8" alt={logo.alt} />
-                      <span className="text-lg font-semibold">
-                        {logo.title}
-                      </span>
+                      <span className="text-lg font-semibold text-green-700">{logo.title}</span>
                     </a>
                   </SheetTitle>
                 </SheetHeader>
@@ -186,11 +186,11 @@ const Navbar = ({
                     {menu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
-                  <div className="flex flex-col gap-3">
-                    <Button asChild variant="outline">
+                  <div className="flex flex-col gap-3 mt-4">
+                    <Button asChild variant="outline" className="w-full border-green-700 text-green-700">
                       <a href={auth.login.url}>{auth.login.text}</a>
                     </Button>
-                    <Button asChild>
+                    <Button asChild className="w-full bg-green-700 hover:bg-green-800">
                       <a href={auth.signup.url}>{auth.signup.text}</a>
                     </Button>
                   </div>
@@ -200,7 +200,45 @@ const Navbar = ({
           </div>
         </div>
       </div>
-    </section>
+    </header>
+  );
+};
+
+const ThemeToggle = ({ activeTheme, setActiveTheme }: { 
+  activeTheme: string, 
+  setActiveTheme: (theme: string) => void 
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon" className="rounded-full w-9 h-9">
+          {activeTheme === "light" ? (
+            <Sun className="h-5 w-5" />
+          ) : activeTheme === "dark" ? (
+            <Moon className="h-5 w-5" />
+          ) : (
+            <Monitor className="h-5 w-5" />
+          )}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup value={activeTheme} onValueChange={setActiveTheme}>
+          <DropdownMenuRadioItem value="light">
+            <Sun className="mr-2 h-4 w-4" />
+            Light
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="dark">
+            <Moon className="mr-2 h-4 w-4" />
+            Dark
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="system">
+            <Monitor className="mr-2 h-4 w-4" />
+            System
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -208,26 +246,33 @@ const renderMenuItem = (item: MenuItem) => {
   if (item.items) {
     return (
       <NavigationMenuItem key={item.title} className="text-muted-foreground">
-        <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
+        <NavigationMenuTrigger className="bg-transparent hover:bg-gray-100 hover:text-green-700">
+          {item.title}
+        </NavigationMenuTrigger>
         <NavigationMenuContent>
-          {item.items.map((subItem) => (
-            <NavigationMenuLink asChild key={subItem.title} className="w-80">
-              <SubMenuLink item={subItem} />
-            </NavigationMenuLink>
-          ))}
+          <div className="grid grid-cols-1 gap-3 p-4 md:w-[400px] lg:w-[500px]">
+            {item.items.map((subItem) => (
+              <NavigationMenuLink asChild key={subItem.title} className="w-full">
+                <SubMenuLink item={subItem} />
+              </NavigationMenuLink>
+            ))}
+          </div>
         </NavigationMenuContent>
       </NavigationMenuItem>
     );
   }
 
   return (
-    <a
-      key={item.title}
-      className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-accent-foreground"
-      href={item.url}
-    >
-      {item.title}
-    </a>
+    <NavigationMenuItem key={item.title}>
+      <NavigationMenuLink asChild>
+        <a
+          className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-green-700"
+          href={item.url}
+        >
+          {item.title}
+        </a>
+      </NavigationMenuLink>
+    </NavigationMenuItem>
   );
 };
 
@@ -235,12 +280,24 @@ const renderMobileMenuItem = (item: MenuItem) => {
   if (item.items) {
     return (
       <AccordionItem key={item.title} value={item.title} className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
+        <AccordionTrigger className="text-md py-2 font-medium hover:text-green-700 hover:no-underline">
           {item.title}
         </AccordionTrigger>
-        <AccordionContent className="mt-2">
+        <AccordionContent className="mt-2 space-y-3">
           {item.items.map((subItem) => (
-            <SubMenuLink key={subItem.title} item={subItem} />
+            <a 
+              key={subItem.title} 
+              href={subItem.url} 
+              className="flex items-start p-2 rounded-md hover:bg-gray-100"
+            >
+              {subItem.icon && <div className="mr-3 text-green-700">{subItem.icon}</div>}
+              <div>
+                <div className="font-medium">{subItem.title}</div>
+                {subItem.description && (
+                  <p className="text-sm text-gray-500">{subItem.description}</p>
+                )}
+              </div>
+            </a>
           ))}
         </AccordionContent>
       </AccordionItem>
@@ -248,7 +305,11 @@ const renderMobileMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <a key={item.title} href={item.url} className="text-md font-semibold">
+    <a 
+      key={item.title} 
+      href={item.url} 
+      className="text-md py-2 font-medium hover:text-green-700"
+    >
       {item.title}
     </a>
   );
@@ -257,14 +318,14 @@ const renderMobileMenuItem = (item: MenuItem) => {
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
     <a
-      className="flex flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none hover:bg-muted hover:text-accent-foreground"
+      className="flex flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none hover:bg-gray-100 hover:text-green-700"
       href={item.url}
     >
-      <div>{item.icon}</div>
+      <div className="text-green-700">{item.icon}</div>
       <div>
-        <div className="text-sm font-semibold">{item.title}</div>
+        <div className="text-sm font-medium">{item.title}</div>
         {item.description && (
-          <p className="text-sm leading-snug text-muted-foreground">
+          <p className="text-sm leading-snug text-gray-500">
             {item.description}
           </p>
         )}
