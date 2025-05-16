@@ -9,7 +9,7 @@ import {
     DialogTitle,
     DialogTrigger
 } from '@/components/ui/dialog';
-import { Staff, columns } from "@/components/dataTable/staffColumns";
+import { Staff } from "@/components/dataTable/staffColumns";
 import Layout from '@/components/layout';
 import Navbar2 from '@/components/navBar2';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -20,6 +20,36 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from '@tanstack/react-query';
+<<<<<<< Updated upstream
+=======
+import { 
+  Alert, 
+  AlertDescription 
+} from "@/components/ui/alert";
+import { 
+  Users, 
+  Search, 
+  UserPlus, 
+  X, 
+  Loader2, 
+  Shield, 
+  UserCog, 
+  AlignJustify,
+  Check,
+  AlertCircle,
+  Info
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+>>>>>>> Stashed changes
 
 const userSchema = z.object({
     firstName: z.string().min(1, "First Name is required"),
