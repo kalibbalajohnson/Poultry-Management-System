@@ -83,7 +83,6 @@ import {
   Legend
 } from 'recharts';
 import { format, subDays, differenceInDays } from 'date-fns';
-import { toast } from 'react-hot-toast';
 
 // Enhanced schema for the production form
 const productionSchema = z.object({
