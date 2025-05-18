@@ -363,6 +363,7 @@ function Navbar2() {
                   <span>My Profile</span>
                 </DropdownMenuItem>
                 
+                 {user?.role !== "Worker" && (
                 <DropdownMenuItem 
                   className="flex items-center gap-2 p-2 cursor-pointer"
                   onSelect={() => navigate('/settings')}
@@ -370,6 +371,7 @@ function Navbar2() {
                   <Settings className="h-4 w-4 text-gray-500" />
                   <span>Settings</span>
                 </DropdownMenuItem>
+                 )}
                 
                 <DropdownMenuSeparator />
                 
