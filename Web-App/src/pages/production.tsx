@@ -10,15 +10,16 @@ import {
   DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
+import * as XLSX from "xlsx";
 import { Production } from "@/components/dataTable/productionColumns";
 import Layout from '@/components/layout';
 import Navbar2 from '@/components/navBar2';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
   FormMessage,
   FormDescription
 } from '@/components/ui/form';
@@ -31,37 +32,38 @@ import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from '@tanstack/react-query';
 import { Batch } from '@/components/dataTable/batchColumns';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
-import { 
-  ArrowDown, 
-  ArrowUp, 
-  BarChart, 
-  Calendar, 
-  Check, 
-  Egg, 
-  FileText, 
-  Filter, 
-  Loader2, 
-  MoreHorizontal, 
-  Plus, 
-  Skull, 
-  X 
+import {
+  ArrowDown,
+  ArrowUpDown,
+  ArrowUp,
+  BarChart,
+  Calendar,
+  Check,
+  Egg,
+  FileText,
+  Filter,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+  Skull,
+  X
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -116,6 +118,9 @@ function ProductionPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const user = storedUser ? JSON.parse(storedUser) : null;
 
   const form = useForm<FormData>({
     resolver: zodResolver(productionSchema),
@@ -210,9 +215,9 @@ function ProductionPage() {
         editMode ? 'Production update error:' : 'Production creation error:',
         error instanceof Error ? error.message : error
       );
-      
+
       setErrorMessage(
-        (axios.isAxiosError(error) && error.response?.data?.message) || 
+        (axios.isAxiosError(error) && error.response?.data?.message) ||
         'Failed to save production record'
       );
     } finally {
@@ -222,7 +227,7 @@ function ProductionPage() {
 
   const handleDelete = async () => {
     if (!selectedProduction) return;
-    
+
     setLoading(true);
     try {
       await axios.delete(
@@ -234,13 +239,13 @@ function ProductionPage() {
           }
         }
       );
-      
+
       setSuccessMessage('Production record deleted successfully');
       setDeleteDialogOpen(false);
       refetch();
     } catch (error) {
       setErrorMessage(
-        (axios.isAxiosError(error) && error.response?.data?.message) || 
+        (axios.isAxiosError(error) && error.response?.data?.message) ||
         'Failed to delete production record'
       );
       console.error('Production deletion error:', error);
@@ -271,8 +276,8 @@ function ProductionPage() {
   });
 
   // Query for production data
-  const { 
-    data: production = [], 
+  const {
+    data: production = [],
     isLoading: isProductionLoading,
     refetch
   } = useQuery<Production[]>({
@@ -320,10 +325,10 @@ function ProductionPage() {
   const filteredProduction = enhancedProduction.filter(prod => {
     const prodDate = new Date(prod.date);
     const rangeDate = getDateFromRange(dateRange);
-    
+
     const dateInRange = prodDate >= rangeDate;
     const batchMatches = filter === 'all' || prod.batchId === filter;
-    
+
     return dateInRange && batchMatches;
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -344,42 +349,42 @@ function ProductionPage() {
 
     const totalEggs = filteredProduction.reduce((sum, record) => sum + record.numberOfEggsCollected, 0);
     const totalMortality = filteredProduction.reduce((sum, record) => sum + record.numberOfDeadBirds, 0);
-    
+
     // Calculate days in range
     const oldest = new Date(Math.min(...filteredProduction.map(p => new Date(p.date).getTime())));
     const newest = new Date(Math.max(...filteredProduction.map(p => new Date(p.date).getTime())));
     const daysDiff = Math.max(1, differenceInDays(newest, oldest) + 1);
-    
+
     // Calculate averages
     const avgEggsPerDay = Math.round(totalEggs / daysDiff);
-    
+
     // Calculate total birds for mortality rate
     const totalBirds = batches.reduce((sum, batch) => sum + batch.quantity, 0);
     const mortalityRate = totalBirds > 0 ? ((totalMortality / totalBirds) * 100) : 0;
-    
+
     // Calculate trends by comparing first half to second half of the period
-    const sortedByDate = [...filteredProduction].sort((a, b) => 
+    const sortedByDate = [...filteredProduction].sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-    
+
     const midpoint = Math.floor(sortedByDate.length / 2);
     const firstHalf = sortedByDate.slice(0, midpoint);
     const secondHalf = sortedByDate.slice(midpoint);
-    
+
     const firstHalfEggs = firstHalf.reduce((sum, record) => sum + record.numberOfEggsCollected, 0);
     const secondHalfEggs = secondHalf.reduce((sum, record) => sum + record.numberOfEggsCollected, 0);
-    
+
     const firstHalfMortality = firstHalf.reduce((sum, record) => sum + record.numberOfDeadBirds, 0);
     const secondHalfMortality = secondHalf.reduce((sum, record) => sum + record.numberOfDeadBirds, 0);
-    
-    const eggsTrend = 
+
+    const eggsTrend =
       secondHalfEggs > firstHalfEggs * 1.1 ? 'increasing' :
-      secondHalfEggs < firstHalfEggs * 0.9 ? 'decreasing' : 'stable';
-    
-    const mortalityTrend = 
+        secondHalfEggs < firstHalfEggs * 0.9 ? 'decreasing' : 'stable';
+
+    const mortalityTrend =
       secondHalfMortality > firstHalfMortality * 1.1 ? 'increasing' :
-      secondHalfMortality < firstHalfMortality * 0.9 ? 'decreasing' : 'stable';
-    
+        secondHalfMortality < firstHalfMortality * 0.9 ? 'decreasing' : 'stable';
+
     return {
       totalEggs,
       avgEggsPerDay,
@@ -515,14 +520,14 @@ function ProductionPage() {
       header: "Actions",
       cell: ({ row }) => {
         const record = row.original as EnhancedProduction;
-        
+
         return (
           <div className="flex items-center justify-end gap-2">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
                     onClick={() => {
                       setSelectedProduction(record);
@@ -537,30 +542,58 @@ function ProductionPage() {
                 <TooltipContent>Edit Record</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => {
-                      setSelectedProduction(record);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    <X className="h-4 w-4 text-red-500" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete Record</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+
+            {user?.role !== "Worker" && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedProduction(record);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <X className="h-4 w-4 text-red-500" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Record</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         );
       },
     },
   ];
+
+  const handleExport = () => {
+    setIsExporting(true);
+
+    try {
+      const exportData = filteredProduction.map((item) => ({
+        Batch: item.batchName,
+        Date: new Date(item.date).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        "Eggs Collected": item.numberOfEggsCollected,
+        "Dead Birds": item.numberOfDeadBirds,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Production Data");
+
+      XLSX.writeFile(workbook, "production_data.xlsx");
+    } finally {
+      // Ensures loading state resets even if an error occurs
+      setTimeout(() => setIsExporting(false), 1000);
+    }
+  };
 
   return (
     <Layout>
@@ -574,7 +607,7 @@ function ProductionPage() {
               Track and manage egg production and mortality data
             </p>
           </div>
-          
+
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-green-700 hover:bg-green-800">
@@ -582,7 +615,6 @@ function ProductionPage() {
                 Add Production Record
               </Button>
             </DialogTrigger>
-            
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>
@@ -622,7 +654,7 @@ function ProductionPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="date"
@@ -636,7 +668,7 @@ function ProductionPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -645,10 +677,10 @@ function ProductionPage() {
                         <FormItem>
                           <FormLabel>Eggs Collected</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="Enter count" 
-                              {...field} 
+                            <Input
+                              type="number"
+                              placeholder="Enter count"
+                              {...field}
                               min={0}
                             />
                           </FormControl>
@@ -656,7 +688,7 @@ function ProductionPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="numberOfDeadBirds"
@@ -664,10 +696,10 @@ function ProductionPage() {
                         <FormItem>
                           <FormLabel>Dead Birds</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="Enter count" 
-                              {...field} 
+                            <Input
+                              type="number"
+                              placeholder="Enter count"
+                              {...field}
                               min={0}
                             />
                           </FormControl>
@@ -676,7 +708,7 @@ function ProductionPage() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="notes"
@@ -697,17 +729,17 @@ function ProductionPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => setOpen(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={loading}
                       className="bg-green-700 hover:bg-green-800"
                     >
@@ -726,7 +758,7 @@ function ProductionPage() {
             </DialogContent>
           </Dialog>
         </div>
-        
+
         {/* Success/Error Messages */}
         {successMessage && (
           <div className="bg-green-50 border border-green-200 text-green-800 rounded-md p-4 flex items-center">
@@ -734,249 +766,267 @@ function ProductionPage() {
             <span>{successMessage}</span>
           </div>
         )}
-        
+
         {errorMessage && (
           <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 flex items-center">
             <X className="h-5 w-5 mr-2 flex-shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
-        
+
         {/* Production Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Eggs Collected
-              </CardTitle>
-              <Egg className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalEggs.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.avgEggsPerDay.toLocaleString()} eggs per day on average
-              </p>
-              <div className="mt-3 flex items-center">
-                {stats.trends.eggs === 'increasing' ? (
-                  <div className="flex items-center text-green-600 text-xs">
-                    <ArrowUp className="h-3 w-3 mr-1" />
-                    <span>Increasing trend</span>
-                  </div>
-                ) : stats.trends.eggs === 'decreasing' ? (
-                  <div className="flex items-center text-amber-600 text-xs">
-                    <ArrowDown className="h-3 w-3 mr-1" />
-                    <span>Decreasing trend</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center text-blue-600 text-xs">
-                    <span>Stable production</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Mortality
-              </CardTitle>
-              <Skull className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalMortality.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.mortalityRate.toFixed(2)}% mortality rate
-              </p>
-              <div className="mt-3 flex items-center">
-                {stats.trends.mortality === 'increasing' ? (
-                  <div className="flex items-center text-red-600 text-xs">
-                    <ArrowUp className="h-3 w-3 mr-1" />
-                    <span>Increasing mortality (concerning)</span>
-                  </div>
-                ) : stats.trends.mortality === 'decreasing' ? (
-                  <div className="flex items-center text-green-600 text-xs">
-                    <ArrowDown className="h-3 w-3 mr-1" />
-                    <span>Decreasing mortality (good)</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center text-blue-600 text-xs">
-                    <span>Stable mortality</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Time Period
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={dateRange}
-                onValueChange={(value) => setDateRange(value as DateRange)}
-              >
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7days">Last 7 days</SelectItem>
-                  <SelectItem value="30days">Last 30 days</SelectItem>
-                  <SelectItem value="90days">Last 90 days</SelectItem>
-                  <SelectItem value="all">All time</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-3">
-                Showing {filteredProduction.length} records from{' '}
-                {dateRange === 'all' 
-                  ? 'all time' 
-                  : `the last ${dateRange.replace('days', ' days')}`}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Filter By Batch
-              </CardTitle>
-              <Filter className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={filter}
-                onValueChange={setFilter}
-              >
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Select batch" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Batches</SelectItem>
-                  {batches
-                    .filter(batch => !batch.isArchived)
-                    .map(batch => (
-                      <SelectItem key={batch.id} value={batch.id}>
-                        {batch.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-3">
-                {filter === 'all'
-                  ? 'Showing all batches'
-                  : `Filtered to ${batches.find(b => b.id === filter)?.name || 'selected batch'}`}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {user?.role !== "Worker" && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Eggs Collected
+                </CardTitle>
+                <Egg className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalEggs.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.avgEggsPerDay.toLocaleString()} eggs per day on average
+                </p>
+                <div className="mt-3 flex items-center">
+                  {stats.trends.eggs === 'increasing' ? (
+                    <div className="flex items-center text-green-600 text-xs">
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                      <span>Increasing trend</span>
+                    </div>
+                  ) : stats.trends.eggs === 'decreasing' ? (
+                    <div className="flex items-center text-amber-600 text-xs">
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                      <span>Decreasing trend</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-blue-600 text-xs">
+                      <span>Stable production</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Mortality
+                </CardTitle>
+                <Skull className="h-4 w-4 text-red-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalMortality.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.mortalityRate.toFixed(2)}% mortality rate
+                </p>
+                <div className="mt-3 flex items-center">
+                  {stats.trends.mortality === 'increasing' ? (
+                    <div className="flex items-center text-red-600 text-xs">
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                      <span>Increasing mortality (concerning)</span>
+                    </div>
+                  ) : stats.trends.mortality === 'decreasing' ? (
+                    <div className="flex items-center text-green-600 text-xs">
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                      <span>Decreasing mortality (good)</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-blue-600 text-xs">
+                      <span>Stable mortality</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Time Period
+                </CardTitle>
+                <Calendar className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <Select
+                  value={dateRange}
+                  onValueChange={(value) => setDateRange(value as DateRange)}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Select range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7days">Last 7 days</SelectItem>
+                    <SelectItem value="30days">Last 30 days</SelectItem>
+                    <SelectItem value="90days">Last 90 days</SelectItem>
+                    <SelectItem value="all">All time</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Showing {filteredProduction.length} records from{' '}
+                  {dateRange === 'all'
+                    ? 'all time'
+                    : `the last ${dateRange.replace('days', ' days')}`}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Filter By Batch
+                </CardTitle>
+                <Filter className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <Select
+                  value={filter}
+                  onValueChange={setFilter}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Select batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Batches</SelectItem>
+                    {batches
+                      .filter(batch => !batch.isArchived)
+                      .map(batch => (
+                        <SelectItem key={batch.id} value={batch.id}>
+                          {batch.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-3">
+                  {filter === 'all'
+                    ? 'Showing all batches'
+                    : `Filtered to ${batches.find(b => b.id === filter)?.name || 'selected batch'}`}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Charts Section */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Egg Production Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Egg Production Trend</CardTitle>
-              <CardDescription>
-                Daily egg collection over time
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={chartData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient id="eggGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis 
-                      dataKey="date" 
-                      tick={{ fontSize: 12 }}
-                      tickMargin={10}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(value) => value.toLocaleString()}
-                    />
-                    <RechartsTooltip
-                      formatter={(value: any) => [value.toLocaleString(), "Eggs"]}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="eggsCollected"
-                      stroke="#10b981"
-                      fillOpacity={1}
-                      fill="url(#eggGradient)"
-                      activeDot={{ r: 8 }}
-                      name="Eggs Collected"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">No data available for the selected period</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {user?.role !== "Worker" && (
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Egg Production Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Egg Production Trend</CardTitle>
+                <CardDescription>
+                  Daily egg collection over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={chartData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="eggGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        tickMargin={10}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(value) => value.toLocaleString()}
+                      />
+                      <RechartsTooltip
+                        formatter={(value: any) => [value.toLocaleString(), "Eggs"]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="eggsCollected"
+                        stroke="#10b981"
+                        fillOpacity={1}
+                        fill="url(#eggGradient)"
+                        activeDot={{ r: 8 }}
+                        name="Eggs Collected"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No data available for the selected period</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Mortality Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Mortality Trend</CardTitle>
-              <CardDescription>
-                Daily bird mortality over time
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsBarChart
-                    data={chartData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis 
-                      dataKey="date" 
-                      tick={{ fontSize: 12 }}
-                      tickMargin={10}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                    />
-                    <RechartsTooltip
-                      formatter={(value: any) => [`${value}`, "Birds"]}
-                    />
-                    <Bar
-                      dataKey="deadBirds"
-                      fill="#ef4444"
-                      radius={[4, 4, 0, 0]}
-                      name="Dead Birds"
-                    />
-                  </RechartsBarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">No data available for the selected period</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+            {/* Mortality Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Mortality Trend</CardTitle>
+                <CardDescription>
+                  Daily bird mortality over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart
+                      data={chartData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        tickMargin={10}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 12 }}
+                      />
+                      <RechartsTooltip
+                        formatter={(value: any) => [`${value}`, "Birds"]}
+                      />
+                      <Bar
+                        dataKey="deadBirds"
+                        fill="#ef4444"
+                        radius={[4, 4, 0, 0]}
+                        name="Dead Birds"
+                      />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No data available for the selected period</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Data Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Production Records</CardTitle>
+            <div className="flex justify-between">
+              <CardTitle>Production Records</CardTitle>
+              {user?.role !== "Worker" && (
+                <Button onClick={handleExport} disabled={isExporting}>
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    "Export"
+                  )}
+                </Button>
+              )}
+            </div>
             <CardDescription>
               {filteredProduction.length} records found
             </CardDescription>
@@ -992,12 +1042,12 @@ function ProductionPage() {
                 <BarChart className="mx-auto h-12 w-12 text-gray-300" />
                 <h3 className="mt-2 text-lg font-semibold text-gray-900">No production records found</h3>
                 <p className="mt-1 text-gray-500">
-                  {filter !== 'all' 
-                    ? 'Try selecting a different batch or time period' 
+                  {filter !== 'all'
+                    ? 'Try selecting a different batch or time period'
                     : 'Start recording your daily production data'}
                 </p>
-                <Button 
-                  onClick={() => setOpen(true)} 
+                <Button
+                  onClick={() => setOpen(true)}
                   className="mt-4 bg-green-700 hover:bg-green-800"
                 >
                   <Plus className="mr-2 h-4 w-4" />
