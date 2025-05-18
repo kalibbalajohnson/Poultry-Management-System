@@ -32,13 +32,13 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { 
-    Calendar as CalendarIcon, 
-    Check, 
-    CheckCircle, 
-    Clock, 
-    Edit, 
-    Trash 
+import {
+    Calendar as CalendarIcon,
+    Check,
+    CheckCircle,
+    Clock,
+    Edit,
+    Trash
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
@@ -77,6 +77,8 @@ function ImmunizationPage() {
     const [immunizations, setImmunizations] = useState<Immunization[]>([]);
     const [selectedImmunization, setSelectedImmunization] = useState<Immunization | null>(null);
     const [editMode, setEditMode] = useState(false);
+    const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+    const user = storedUser ? JSON.parse(storedUser) : null;
 
     const form = useForm<FormData>({
         resolver: zodResolver(immunizationSchema),
@@ -115,7 +117,7 @@ function ImmunizationPage() {
         if (editMode && selectedImmunization) {
             form.setValue("batchId", selectedImmunization.batchId);
             form.setValue("vaccineName", selectedImmunization.vaccineName);
-            form.setValue("scheduledStartDate", 
+            form.setValue("scheduledStartDate",
                 new Date(selectedImmunization.scheduledStartDate).toISOString().split('T')[0]);
             form.setValue("notes", selectedImmunization.notes || "");
         }
@@ -196,16 +198,16 @@ function ImmunizationPage() {
         try {
             if (editMode && selectedImmunization) {
                 // Mock update (would be replaced with API call)
-                const updatedImmunizations = immunizations.map(imm => 
-                    imm.id === selectedImmunization.id 
+                const updatedImmunizations = immunizations.map(imm =>
+                    imm.id === selectedImmunization.id
                         ? {
-                            ...imm, 
+                            ...imm,
                             batchId: data.batchId,
                             vaccineName: data.vaccineName,
                             scheduledStartDate: new Date(data.scheduledStartDate).toISOString(),
                             notes: data.notes,
                             updatedAt: new Date().toISOString()
-                          } 
+                        }
                         : imm
                 );
                 setImmunizations(updatedImmunizations);
@@ -229,7 +231,7 @@ function ImmunizationPage() {
             setOpen(false);
         } catch (error) {
             setErrorMessage(
-                'Error saving immunization schedule: ' + 
+                'Error saving immunization schedule: ' +
                 (error instanceof Error ? error.message : String(error))
             );
         } finally {
@@ -242,9 +244,9 @@ function ImmunizationPage() {
     };
 
     const handleUpdateStatus = (id: string, newStatus: "completed" | "cancelled" | "pending") => {
-        const updatedImmunizations = immunizations.map(imm => 
-            imm.id === id 
-                ? {...imm, status: newStatus, updatedAt: new Date().toISOString()} 
+        const updatedImmunizations = immunizations.map(imm =>
+            imm.id === id
+                ? { ...imm, status: newStatus, updatedAt: new Date().toISOString() }
                 : imm
         );
         setImmunizations(updatedImmunizations);
@@ -267,14 +269,14 @@ function ImmunizationPage() {
     const filteredImmunizations = immunizations.filter(imm => {
         const immunizationDate = new Date(imm.scheduledStartDate);
         const selectedDate = date ? new Date(date) : new Date();
-        
-        const dateMatches = 
-            immunizationDate.getDate() === selectedDate.getDate() && 
-            immunizationDate.getMonth() === selectedDate.getMonth() && 
+
+        const dateMatches =
+            immunizationDate.getDate() === selectedDate.getDate() &&
+            immunizationDate.getMonth() === selectedDate.getMonth() &&
             immunizationDate.getFullYear() === selectedDate.getFullYear();
-        
+
         const statusMatches = selectedStatus === "all" || imm.status === selectedStatus;
-        
+
         return dateMatches && statusMatches;
     });
 
@@ -285,7 +287,7 @@ function ImmunizationPage() {
     });
 
     const getStatusBadgeColor = (status: string) => {
-        switch(status) {
+        switch (status) {
             case 'completed':
                 return 'bg-green-500 hover:bg-green-600';
             case 'pending':
@@ -321,97 +323,99 @@ function ImmunizationPage() {
 
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-semibold">Immunization Schedule</h2>
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger>
-                            <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
-                                {editMode ? "Edit Schedule" : "Add Schedule"}
-                            </button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-xl">
-                            <DialogHeader>
-                                <DialogTitle>{editMode ? "Edit Immunization Schedule" : "Add Immunization Schedule"}</DialogTitle>
-                                <DialogDescription>
-                                    {editMode 
-                                        ? "Update the details of the immunization schedule below."
-                                        : "Fill in the details below to add a new immunization schedule."}
-                                </DialogDescription>
-                            </DialogHeader>
-                            <section className="p-2">
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="batchId"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Batch</FormLabel>
-                                                    <FormControl>
-                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Select batch" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {batches.map((batch) => (
-                                                                    <SelectItem key={batch.id} value={batch.id}>
-                                                                        {batch.name}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="vaccineName"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Vaccine Name</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="Enter vaccine name" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="scheduledStartDate"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Scheduled Date</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="date" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="notes"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Notes</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="Add notes" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <Button type="submit" className="w-full mt-4 bg-green-700 hover:bg-green-800 col-span-1 md:col-span-2">
-                                            {loading 
-                                                ? editMode ? "Updating..." : "Adding..." 
-                                                : editMode ? "Update Schedule" : "Add Schedule"}
-                                        </Button>
-                                    </form>
-                                </Form>
-                            </section>
-                        </DialogContent>
-                    </Dialog>
+                    {user?.role !== "Worker" && (
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <DialogTrigger>
+                                <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
+                                    {editMode ? "Edit Schedule" : "Add Schedule"}
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-xl">
+                                <DialogHeader>
+                                    <DialogTitle>{editMode ? "Edit Immunization Schedule" : "Add Immunization Schedule"}</DialogTitle>
+                                    <DialogDescription>
+                                        {editMode
+                                            ? "Update the details of the immunization schedule below."
+                                            : "Fill in the details below to add a new immunization schedule."}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <section className="p-2">
+                                    <Form {...form}>
+                                        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="batchId"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Batch</FormLabel>
+                                                        <FormControl>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select batch" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {batches.map((batch) => (
+                                                                        <SelectItem key={batch.id} value={batch.id}>
+                                                                            {batch.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="vaccineName"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Vaccine Name</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Enter vaccine name" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="scheduledStartDate"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Scheduled Date</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="date" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="notes"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Notes</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Add notes" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full mt-4 bg-green-700 hover:bg-green-800 col-span-1 md:col-span-2">
+                                                {loading
+                                                    ? editMode ? "Updating..." : "Adding..."
+                                                    : editMode ? "Update Schedule" : "Add Schedule"}
+                                            </Button>
+                                        </form>
+                                    </Form>
+                                </section>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -451,11 +455,11 @@ function ImmunizationPage() {
                                     {date ? (
                                         <span className="flex items-center gap-2">
                                             <CalendarIcon className="h-5 w-5" />
-                                            Immunizations for {date.toLocaleDateString('en-US', { 
-                                                weekday: 'long', 
-                                                year: 'numeric', 
-                                                month: 'long', 
-                                                day: 'numeric' 
+                                            Immunizations for {date.toLocaleDateString('en-US', {
+                                                weekday: 'long',
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
                                             })}
                                         </span>
                                     ) : (
@@ -533,8 +537,8 @@ function ImmunizationPage() {
                                             )}
                                             <div className="mt-3 pt-3 border-t flex gap-2">
                                                 {immunization.status !== "completed" && (
-                                                    <Button 
-                                                        variant="outline" 
+                                                    <Button
+                                                        variant="outline"
                                                         size="sm"
                                                         className="text-green-600 border-green-600 hover:bg-green-50"
                                                         onClick={() => handleUpdateStatus(immunization.id, "completed")}
@@ -544,8 +548,8 @@ function ImmunizationPage() {
                                                     </Button>
                                                 )}
                                                 {immunization.status !== "cancelled" && (
-                                                    <Button 
-                                                        variant="outline" 
+                                                    <Button
+                                                        variant="outline"
                                                         size="sm"
                                                         className="text-red-600 border-red-600 hover:bg-red-50"
                                                         onClick={() => handleUpdateStatus(immunization.id, "cancelled")}
@@ -554,8 +558,8 @@ function ImmunizationPage() {
                                                     </Button>
                                                 )}
                                                 {immunization.status !== "pending" && (
-                                                    <Button 
-                                                        variant="outline" 
+                                                    <Button
+                                                        variant="outline"
                                                         size="sm"
                                                         className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
                                                         onClick={() => handleUpdateStatus(immunization.id, "pending")}
@@ -585,10 +589,10 @@ function ImmunizationPage() {
                                         const immunizationDate = new Date(imm.scheduledStartDate);
                                         const sevenDaysLater = new Date();
                                         sevenDaysLater.setDate(today.getDate() + 7);
-                                        
-                                        return imm.status === "pending" && 
-                                               immunizationDate >= today && 
-                                               immunizationDate <= sevenDaysLater;
+
+                                        return imm.status === "pending" &&
+                                            immunizationDate >= today &&
+                                            immunizationDate <= sevenDaysLater;
                                     })
                                     .sort((a, b) => new Date(a.scheduledStartDate).getTime() - new Date(b.scheduledStartDate).getTime())
                                     .slice(0, 3)
@@ -606,9 +610,9 @@ function ImmunizationPage() {
                                             <p className="text-sm text-gray-600">
                                                 Date: {new Date(immunization.scheduledStartDate).toLocaleDateString()}
                                             </p>
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
                                                 className="mt-3 w-full text-green-600 border-green-600 hover:bg-green-50"
                                                 onClick={() => handleUpdateStatus(immunization.id, "completed")}
                                             >
@@ -622,15 +626,15 @@ function ImmunizationPage() {
                                     const immunizationDate = new Date(imm.scheduledStartDate);
                                     const sevenDaysLater = new Date();
                                     sevenDaysLater.setDate(today.getDate() + 7);
-                                    
-                                    return imm.status === "pending" && 
-                                           immunizationDate >= today && 
-                                           immunizationDate <= sevenDaysLater;
+
+                                    return imm.status === "pending" &&
+                                        immunizationDate >= today &&
+                                        immunizationDate <= sevenDaysLater;
                                 }).length === 0 && (
-                                    <div className="col-span-3 text-center py-6 text-gray-500">
-                                        <p>No upcoming immunizations in the next 7 days</p>
-                                    </div>
-                                )}
+                                        <div className="col-span-3 text-center py-6 text-gray-500">
+                                            <p>No upcoming immunizations in the next 7 days</p>
+                                        </div>
+                                    )}
                             </div>
                         </CardContent>
                     </Card>

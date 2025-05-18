@@ -24,17 +24,17 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Package, 
-  AlertTriangle, 
-  Filter, 
-  Plus, 
+import {
+  Package,
+  AlertTriangle,
+  Filter,
+  Plus,
   ChevronDown,
   LucideRefreshCw,
   PlusCircle,
   ShoppingCart
 } from 'lucide-react';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -42,11 +42,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -72,6 +72,8 @@ function StockPage() {
   const [restockAmount, setRestockAmount] = useState<number>(0);
   const [restockNote, setRestockNote] = useState<string>('');
   const [restockLoading, setRestockLoading] = useState(false);
+  const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const user = storedUser ? JSON.parse(storedUser) : null;
 
   const form = useForm<FormData>({
     resolver: zodResolver(stockSchema),
@@ -119,12 +121,12 @@ function StockPage() {
 
   const handleRestock = async () => {
     if (!selectedItem) return;
-    
+
     setRestockLoading(true);
     try {
       const res = await axios.patch(
         `http://92.112.180.180:3000/api/v1/stock/${selectedItem.id}`,
-        { 
+        {
           quantity: selectedItem.quantity + restockAmount,
           notes: restockNote ? `${selectedItem.notes || ''}\n${new Date().toLocaleString()}: Restocked +${restockAmount} ${selectedItem.unit || 'kg'} - ${restockNote}` : selectedItem.notes
         },
@@ -179,7 +181,7 @@ function StockPage() {
   const totalByCategory = stock.reduce((acc, item) => {
     acc[item.category] = (acc[item.category] || 0) + 1;
     return acc;
-  }, {} as {[key: string]: number});
+  }, {} as { [key: string]: number });
 
   // Filter stock based on selected filter
   const filteredStock = stock.filter(item => {
@@ -214,13 +216,13 @@ function StockPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className={filter === 'all' ? 'bg-accent text-accent-foreground' : ''}
                   onClick={() => handleFilterChange('all')}
                 >
                   All Items
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className={filter === 'low' ? 'bg-accent text-accent-foreground' : ''}
                   onClick={() => handleFilterChange('low')}
                 >
@@ -228,7 +230,7 @@ function StockPage() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {Object.keys(totalByCategory).map(category => (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     key={category}
                     className={filter === category ? 'bg-accent text-accent-foreground' : ''}
                     onClick={() => handleFilterChange(category)}
@@ -238,83 +240,46 @@ function StockPage() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               size="icon"
               onClick={() => refetch()}
               title="Refresh stock data"
             >
               <LucideRefreshCw className="h-4 w-4" />
             </Button>
-            
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-green-700 hover:bg-green-800 flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Item
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
-                <DialogHeader>
-                  <DialogTitle>Add Inventory Item</DialogTitle>
-                  <DialogDescription>
-                    Add a new item to your inventory. Fill out the details below.
-                  </DialogDescription>
-                </DialogHeader>
-                <Tabs defaultValue="details" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="details">Item Details</TabsTrigger>
-                    <TabsTrigger value="advanced">Additional Info</TabsTrigger>
-                  </TabsList>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
-                      <TabsContent value="details" className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="item"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Item Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter item name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <FormControl>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Feed">Feed</SelectItem>
-                                    <SelectItem value="Medicine">Medicine</SelectItem>
-                                    <SelectItem value="Equipment">Equipment</SelectItem>
-                                    <SelectItem value="Supplies">Supplies</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
+            {user?.role !== "Worker" && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-green-700 hover:bg-green-800 flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Item
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[550px]">
+                  <DialogHeader>
+                    <DialogTitle>Add Inventory Item</DialogTitle>
+                    <DialogDescription>
+                      Add a new item to your inventory. Fill out the details below.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Tabs defaultValue="details" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="details">Item Details</TabsTrigger>
+                      <TabsTrigger value="advanced">Additional Info</TabsTrigger>
+                    </TabsList>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
+                        <TabsContent value="details" className="space-y-4">
                           <FormField
                             control={form.control}
-                            name="quantity"
+                            name="item"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Quantity</FormLabel>
+                                <FormLabel>Item Name</FormLabel>
                                 <FormControl>
-                                  <Input type="number" placeholder="Enter quantity" {...field} />
+                                  <Input placeholder="Enter item name" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -322,21 +287,20 @@ function StockPage() {
                           />
                           <FormField
                             control={form.control}
-                            name="unit"
+                            name="category"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Unit</FormLabel>
+                                <FormLabel>Category</FormLabel>
                                 <FormControl>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Select unit" />
+                                      <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                                      <SelectItem value="bags">Bags</SelectItem>
-                                      <SelectItem value="pcs">Pieces</SelectItem>
-                                      <SelectItem value="bottles">Bottles</SelectItem>
-                                      <SelectItem value="boxes">Boxes</SelectItem>
+                                      <SelectItem value="Feed">Feed</SelectItem>
+                                      <SelectItem value="Medicine">Medicine</SelectItem>
+                                      <SelectItem value="Equipment">Equipment</SelectItem>
+                                      <SelectItem value="Supplies">Supplies</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </FormControl>
@@ -344,164 +308,205 @@ function StockPage() {
                               </FormItem>
                             )}
                           />
-                        </div>
-                        <FormField
-                          control={form.control}
-                          name="threshold"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Low Stock Threshold</FormLabel>
-                              <FormControl>
-                                <Input type="number" placeholder="Enter threshold" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </TabsContent>
-                      <TabsContent value="advanced" className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="supplier"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Supplier (Optional)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter supplier name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="unitPrice"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Unit Price (Optional)</FormLabel>
-                              <FormControl>
-                                <Input type="number" placeholder="Enter unit price" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="notes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Notes (Optional)</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Enter any additional notes or information about this item"
-                                  className="min-h-[80px]"
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </TabsContent>
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          className="bg-green-700 hover:bg-green-800"
-                          disabled={loading}
-                        >
-                          {loading ? 'Adding...' : 'Add Item'}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </Tabs>
-              </DialogContent>
-            </Dialog>
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="quantity"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Quantity</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" placeholder="Enter quantity" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="unit"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Unit</FormLabel>
+                                  <FormControl>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select unit" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                                        <SelectItem value="bags">Bags</SelectItem>
+                                        <SelectItem value="pcs">Pieces</SelectItem>
+                                        <SelectItem value="bottles">Bottles</SelectItem>
+                                        <SelectItem value="boxes">Boxes</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="threshold"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Low Stock Threshold</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="Enter threshold" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </TabsContent>
+                        <TabsContent value="advanced" className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="supplier"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Supplier (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter supplier name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="unitPrice"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Unit Price (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="Enter unit price" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="notes"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Notes (Optional)</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Enter any additional notes or information about this item"
+                                    className="min-h-[80px]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </TabsContent>
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            className="bg-green-700 hover:bg-green-800"
+                            disabled={loading}
+                          >
+                            {loading ? 'Adding...' : 'Add Item'}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </Tabs>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
 
         {/* Stock Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Total Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <Package className="h-5 w-5 text-gray-700 mr-2" />
-                <span className="text-2xl font-bold">{totalItems}</span>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {Object.entries(totalByCategory).map(([category, count]) => (
-                  <Badge key={category} variant="outline" className="text-xs">
-                    {category}: {count}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className={lowStockItems > 0 ? "border-amber-200 bg-amber-50" : ""}>
-            <CardHeader className="pb-2">
-              <CardTitle className={`text-sm font-medium ${lowStockItems > 0 ? "text-amber-700" : "text-gray-500"}`}>
-                Low Stock Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <AlertTriangle className={`h-5 w-5 mr-2 ${lowStockItems > 0 ? "text-amber-600" : "text-gray-700"}`} />
-                <span className={`text-2xl font-bold ${lowStockItems > 0 ? "text-amber-700" : ""}`}>
-                  {lowStockItems}
-                </span>
-              </div>
-              {lowStockItems > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-2 text-xs border-amber-300 text-amber-800 hover:bg-amber-100"
-                  onClick={() => handleFilterChange('low')}
-                >
-                  View Low Stock Items
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => setOpen(true)}
-                >
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  Add Item
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                >
-                  <ShoppingCart className="h-3.5 w-3.5" />
-                  Order Supplies
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {user?.role !== "Worker" && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">Total Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <Package className="h-5 w-5 text-gray-700 mr-2" />
+                  <span className="text-2xl font-bold">{totalItems}</span>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {Object.entries(totalByCategory).map(([category, count]) => (
+                    <Badge key={category} variant="outline" className="text-xs">
+                      {category}: {count}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={lowStockItems > 0 ? "border-amber-200 bg-amber-50" : ""}>
+              <CardHeader className="pb-2">
+                <CardTitle className={`text-sm font-medium ${lowStockItems > 0 ? "text-amber-700" : "text-gray-500"}`}>
+                  Low Stock Items
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <AlertTriangle className={`h-5 w-5 mr-2 ${lowStockItems > 0 ? "text-amber-600" : "text-gray-700"}`} />
+                  <span className={`text-2xl font-bold ${lowStockItems > 0 ? "text-amber-700" : ""}`}>
+                    {lowStockItems}
+                  </span>
+                </div>
+                {lowStockItems > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-xs border-amber-300 text-amber-800 hover:bg-amber-100"
+                    onClick={() => handleFilterChange('low')}
+                  >
+                    View Low Stock Items
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => setOpen(true)}
+                  >
+                    <PlusCircle className="h-3.5 w-3.5" />
+                    Add Item
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <ShoppingCart className="h-3.5 w-3.5" />
+                    Order Supplies
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Filter indication */}
         {filter !== 'all' && (
@@ -512,9 +517,9 @@ function StockPage() {
                 {filter === 'low' ? 'Showing low stock items only' : `Filtered by category: ${filter}`}
               </span>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="h-7 text-blue-600 hover:text-blue-800 hover:bg-blue-100"
               onClick={() => handleFilterChange('all')}
             >
@@ -528,10 +533,10 @@ function StockPage() {
           <div className="mb-4">
             <h3 className="text-lg font-medium mb-1">Inventory Items</h3>
             <p className="text-sm text-gray-500">
-              {filter === 'all' 
-                ? 'Showing all inventory items' 
-                : filter === 'low' 
-                  ? 'Showing low stock items' 
+              {filter === 'all'
+                ? 'Showing all inventory items'
+                : filter === 'low'
+                  ? 'Showing low stock items'
                   : `Showing ${filter} items`
               }
             </p>
@@ -559,7 +564,7 @@ function StockPage() {
               ) : (
                 <p className="text-gray-500 text-sm mt-1">Add your first inventory item to get started</p>
               )}
-              <Button 
+              <Button
                 className="mt-4 bg-green-700 hover:bg-green-800"
                 onClick={() => setOpen(true)}
               >
@@ -569,7 +574,7 @@ function StockPage() {
           ) : (
             <>
               <div className="overflow-hidden rounded-md border">
-                <DataTable 
+                <DataTable
                   columns={[
                     ...columns.slice(0, -1), // All columns except the last one (actions)
                     {
@@ -580,7 +585,7 @@ function StockPage() {
                         const percentage = Math.min(Math.round((item.quantity / Math.max(item.threshold * 2, 1)) * 100), 100);
                         let statusColor = "bg-green-500";
                         let statusText = "Good";
-                        
+
                         if (item.quantity <= item.threshold) {
                           statusColor = "bg-red-500";
                           statusText = "Low";
@@ -588,7 +593,7 @@ function StockPage() {
                           statusColor = "bg-amber-500";
                           statusText = "Warning";
                         }
-                        
+
                         return (
                           <div className="w-28">
                             <div className="flex justify-between items-center mb-1 text-xs">
@@ -607,8 +612,8 @@ function StockPage() {
                         const item = row.original;
                         return (
                           <div className="flex items-center gap-2">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               className="h-8 text-green-700 border-green-700 hover:bg-green-50"
                               onClick={() => {
@@ -627,21 +632,25 @@ function StockPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
-                                <DropdownMenuItem>View History</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                                <DropdownMenuItem>Checkout</DropdownMenuItem>
+                                {user?.role !== "Worker" && (
+                                  <>
+                                    <DropdownMenuItem>View History</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
                         );
                       },
                     }
-                  ]} 
-                  data={filteredStock} 
+                  ]}
+                  data={filteredStock}
                 />
               </div>
-              
+
               <p className="text-xs text-gray-500 mt-4">
                 Showing {filteredStock.length} of {stock.length} total items
               </p>
@@ -697,13 +706,13 @@ function StockPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setRestockDialogOpen(false)}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 className="bg-green-700 hover:bg-green-800"
                 onClick={handleRestock}
                 disabled={restockLoading || restockAmount <= 0}
