@@ -297,12 +297,14 @@ const DashboardPage = () => {
       <div className="flex-1 space-y-4 p-4 md:p-6 pt-5">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => navigate('/settings')}>
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-          </div>
+          {user?.role !== "Worker" && (
+            <div className="flex items-center gap-2">
+              <Button onClick={() => navigate('/settings')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Overview Stats */}
