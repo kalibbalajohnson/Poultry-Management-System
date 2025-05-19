@@ -14,6 +14,10 @@ import DiagnosisDetailPage from './pages/diagnosis/diagnosisDetails';
 import StaffPage from './pages/staff';
 import SettingsPage from './pages/settings';
 import ProductionPage from './pages/production';
+// Import feed formula pages
+import FeedFormulaPage from './pages/feed-formula/index';
+import FeedFormulaCreatePage from './pages/feed-formula/create';
+import FeedFormulaViewPage from './pages/feed-formula/view';
 
 function App() {
   return (
@@ -32,6 +36,13 @@ function App() {
           <Route path="/staff" element={<StaffPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/production" element={<ProductionPage />} />
+          
+          {/* Feed Formula Routes */}
+          <Route path="/feed-formula" element={<FeedFormulaPage />} />
+          <Route path="/feed-formula/create" element={<FeedFormulaCreatePage />} />
+          <Route path="/feed-formula/:id" element={<FeedFormulaViewPage />} />
+          <Route path="/feed-formula/edit/:id" element={<FeedFormulaViewPage />} />
+          
           <Route path="/signup" element={<SignUpPage logo={{
             src: '',
             alt: ''

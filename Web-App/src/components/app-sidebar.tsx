@@ -1,8 +1,11 @@
+// Web-App/src/components/app-sidebar.tsx
+
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { 
   BarChart, Calendar, Home, Package, Search, PlusCircle,
-  Settings, Users, Menu, ChevronRight, X
+  Settings, Users, Menu, ChevronRight, X,
+  FlaskConical
 } from "lucide-react"
 
 import {
@@ -61,6 +64,21 @@ const fullNav = [
     icon: Package,
   },
   {
+    title: "Feed Formulas", // New menu item for feed formulas
+    url: "",
+    icon: FlaskConical,
+    items: [
+      {
+        title: "All Formulas",
+        url: "/feed-formula",
+      },
+      {
+        title: "Create Formula",
+        url: "/feed-formula/create",
+      },
+    ],
+  },
+  {
     title: "Immunization",
     url: "/immunization",
     icon: PlusCircle,
@@ -97,7 +115,12 @@ const workerNav = [
   {
     title: "Stock",
     url: "/stock",
-    icon: BarChart,
+    icon: Package,
+  },
+  {
+    title: "Feed Formulas", // Also add to worker menu with fewer options
+    url: "/feed-formula",
+    icon: FlaskConical,
   },
   {
     title: "Immunization",
@@ -280,14 +303,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
+<<<<<<< Updated upstream
                     isActive={activeItem === item.url}
+=======
+                    isActive={activeItem === item.url || 
+                             (item.items && item.items.some(subItem => activeItem === subItem.url))}
+>>>>>>> Stashed changes
                     tooltip={item.title}
                   >
                     <a 
                       href={item.url || "#"} 
                       className={cn(
                         "font-medium relative",
-                        activeItem === item.url && "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-green-600 before:rounded-r-sm"
+                        (activeItem === item.url || 
+                        (item.items && item.items.some(subItem => activeItem === subItem.url))) && 
+                        "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-green-600 before:rounded-r-sm"
                       )}
                       onClick={() => {
                         if (item.url) {

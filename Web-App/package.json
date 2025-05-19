@@ -23,7 +23,6 @@
     ]
   },
   "dependencies": {
-    "@aldabil/react-scheduler": "^2.2.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@hookform/resolvers": "^3.9.1",
