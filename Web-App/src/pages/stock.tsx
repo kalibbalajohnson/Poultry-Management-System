@@ -733,6 +733,8 @@ function StockPage() {
             <li>Analyze stock usage patterns to forecast future demand </li>
             <li>Ensure that all staff involved in stock management are well-trained </li>
             <li>Use the notes field to record important details about specific items</li>
+            <li>Organize stock items into categories</li>
+
           </ul>
         </div>
       </div>
