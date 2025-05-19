@@ -2,7 +2,17 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight} from "lucide-react";
 import Footer from '@/components/footer';
 import Navbar from '@/components/navBar';
-
+/**
+ * HomePage
+ *
+ * The landing page for PoultryPal, showcasing:
+ *  - Navbar
+ *  - Hero section with primary call-to-action
+ *  - Features grid
+ *  - Testimonials
+ *  - Final CTA
+ *  - Footer
+ */
 const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -31,6 +41,7 @@ const HomePage = () => {
                 </div>
               </div>
               <div className="relative">
+                {/* Hero Image & Badge */}
                 <img
                   src="/farm.jpg" 
                   alt="Poultry farm management"
@@ -95,9 +106,11 @@ const HomePage = () => {
         <section className="py-16 px-6">
           <div className="container mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12">What Farmers Say</h2>
+             {/* Single Testimonial Card */}
             <div className="bg-green-700 text-white p-8 rounded-lg">
               <p className="text-xl italic mb-6">"PoultryPal has transformed how we manage our farm. The disease diagnosis feature helped us identify issues early, saving thousands of birds."</p>
               <div className="flex items-center">
+                 {/* Initials Avatar */}
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-green-700 font-bold">JK</div>
                 <div className="ml-4">
                   <p className="font-semibold">Johnson Kalibbala</p>

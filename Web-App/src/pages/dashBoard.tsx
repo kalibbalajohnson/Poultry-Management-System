@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import Navbar2 from "@/components/navBar2";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout";
-import { 
-  BarChart as BarChartIcon, 
-  Home, 
-  Boxes, 
-  Users, 
-  Feather, 
-  Plus, 
+import {
+  BarChart as BarChartIcon,
+  Home,
+  Boxes,
+  Users,
+  Feather,
+  Plus,
   AlertTriangle,
-  ArrowUp, 
+  ArrowUp,
   ArrowDown,
   Calendar,
   Thermometer,
@@ -56,40 +56,40 @@ interface Batch {
 
 // Mock recent activities for the activity feed
 const activities = [
-  { 
-    id: '1', 
-    type: 'stock', 
-    message: 'Low stock alert: Feed is below threshold', 
-    time: '10 minutes ago', 
-    severity: 'warning' 
+  {
+    id: '1',
+    type: 'stock',
+    message: 'Low stock alert: Feed is below threshold',
+    time: '10 minutes ago',
+    severity: 'warning'
   },
-  { 
-    id: '2', 
-    type: 'production', 
-    message: 'Daily production recorded: 4500 eggs collected', 
-    time: '2 hours ago', 
-    severity: 'info' 
+  {
+    id: '2',
+    type: 'production',
+    message: 'Daily production recorded: 4500 eggs collected',
+    time: '2 hours ago',
+    severity: 'info'
   },
-  { 
-    id: '3', 
-    type: 'health', 
-    message: 'Batch #3 scheduled for vaccination tomorrow', 
-    time: '3 hours ago', 
-    severity: 'info' 
+  {
+    id: '3',
+    type: 'health',
+    message: 'Batch #3 scheduled for vaccination tomorrow',
+    time: '3 hours ago',
+    severity: 'info'
   },
-  { 
-    id: '4', 
-    type: 'monitoring', 
-    message: 'Temperature in House 2 above normal range', 
-    time: '5 hours ago', 
-    severity: 'danger' 
+  {
+    id: '4',
+    type: 'monitoring',
+    message: 'Temperature in House 2 above normal range',
+    time: '5 hours ago',
+    severity: 'danger'
   },
-  { 
-    id: '5', 
-    type: 'staff', 
-    message: 'New worker account created: John D.', 
-    time: '1 day ago', 
-    severity: 'info' 
+  {
+    id: '5',
+    type: 'staff',
+    message: 'New worker account created: John D.',
+    time: '1 day ago',
+    severity: 'info'
   }
 ];
 
@@ -109,22 +109,22 @@ const getRandomProductionData = () => {
   const days = 7;
   const result = [];
   const today = new Date();
-  
+
   for (let i = 0; i < days; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    
+
     // Generate random data but with a pattern
     const baseline = 4000 + Math.random() * 500;
     const weekend = date.getDay() === 0 || date.getDay() === 6;
-    
+
     result.unshift({
       date: format(date, 'MMM dd'),
       eggsCollected: Math.round(weekend ? baseline * 0.9 : baseline),
       deadBirds: Math.round(Math.random() * 10),
     });
   }
-  
+
   return result;
 };
 
@@ -139,9 +139,11 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const [period, setPeriod] = useState("weekly");
   const [selectedHouse, setSelectedHouse] = useState<string | null>(null);
-  
+  const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
   const accessToken = localStorage.getItem('accessToken');
-  
+
   // Fetch staff data
   const { data: staff = [], isLoading: isStaffLoading } = useQuery<Staff[]>({
     queryKey: ['staff'],
@@ -204,13 +206,13 @@ const DashboardPage = () => {
       }
     },
   });
-  
+
   // For environmental data, we'll use mock data for now
   // In a real app, this would come from your API
   const [environmentalData, setEnvironmentalData] = useState(getRandomEnvironmentalData());
   const productionData = getRandomProductionData();
   const stockData = getStockLevelData();
-  
+
   // Calculate summary statistics
   const activeBatches = batches?.filter(batch => !batch.isArchived)?.length || 0;
   const monitoredHouses = houses?.filter(house => house.isMonitored)?.length || 0;
@@ -219,23 +221,23 @@ const DashboardPage = () => {
   const totalBirds = batches
     ?.filter(batch => !batch.isArchived)
     ?.reduce((total, batch) => total + (batch.quantity || 0), 0) || 0;
-  
+
   // Calculate production metrics
   const todayProduction = productionData[productionData.length - 1]?.eggsCollected || 0;
   const yesterdayProduction = productionData[productionData.length - 2]?.eggsCollected || 0;
   const productionChange = todayProduction - yesterdayProduction;
   const productionChangePercent = yesterdayProduction ? (productionChange / yesterdayProduction) * 100 : 0;
-  
+
   // Calculate capacity utilization
   const capacityUtilization = totalCapacity ? (totalBirds / totalCapacity) * 100 : 0;
-  
+
   // Format production data for visualization
   const productionChartData = productionData.map(item => ({
     ...item,
     eggsCollected: item.eggsCollected,
     deadBirds: item.deadBirds,
   }));
-  
+
   useEffect(() => {
     // Add a timer to simulate real-time data updates
     const timer = setInterval(() => {
@@ -253,7 +255,7 @@ const DashboardPage = () => {
         ];
       });
     }, 30000); // Update every 30 seconds
-    
+
     return () => clearInterval(timer);
   }, []);
 
@@ -295,154 +297,153 @@ const DashboardPage = () => {
       <div className="flex-1 space-y-4 p-4 md:p-6 pt-5">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
-          <div className="flex items-center gap-2">
-            <div className="flex bg-muted rounded-md p-1">
-              <Button variant="ghost" className="text-sm px-3">Overview</Button>
-              <Button variant="ghost" className="text-sm px-3">Analytics</Button>
-              <Button variant="ghost" className="text-sm px-3">Reports</Button>
+          {user?.role !== "Worker" && (
+            <div className="flex items-center gap-2">
+              <Button onClick={() => navigate('/settings')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
             </div>
-            <Button onClick={() => navigate('/settings')}>
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-          </div>
+          )}
         </div>
 
         {/* Overview Stats */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Birds</CardTitle>
-              <Feather className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalBirds.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                Across {activeBatches} active batches
-              </p>
-              <div className="mt-3">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span>Capacity Utilization</span>
-                  <span className="font-medium">{Math.round(capacityUtilization)}%</span>
+        {user?.role !== "Worker" && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Birds</CardTitle>
+                <Feather className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalBirds.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">
+                  Across {activeBatches} active batches
+                </p>
+                <div className="mt-3">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span>Capacity Utilization</span>
+                    <span className="font-medium">{Math.round(capacityUtilization)}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full"
+                      style={{ width: `${Math.min(100, capacityUtilization)}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary rounded-full" 
-                    style={{ width: `${Math.min(100, capacityUtilization)}%` }}
-                  ></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Houses Monitored</CardTitle>
-              <Home className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{monitoredHouses} / {houses.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Total capacity: {totalCapacity.toLocaleString()} birds
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full text-xs"
-                  onClick={() => navigate('/houses')}
-                >
-                  View Houses
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="w-full text-xs"
-                  onClick={() => navigate('/houses')}
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" />
-                  Add House
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Daily Production</CardTitle>
-              <BarChartIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2">
-                <div className="text-2xl font-bold">{todayProduction.toLocaleString()}</div>
-                <Badge variant={productionChange >= 0 ? "default" : "destructive"} className="ml-auto">
-                  {productionChange >= 0 ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
-                  {Math.abs(productionChangePercent).toFixed(1)}%
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                vs {yesterdayProduction.toLocaleString()} yesterday
-              </p>
-              <div className="mt-3">
-                <ResponsiveContainer width="100%" height={40}>
-                  <AreaChart data={productionChartData}>
-                    <defs>
-                      <linearGradient id="productionGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area 
-                      type="monotone" 
-                      dataKey="eggsCollected" 
-                      stroke="#10b981" 
-                      fillOpacity={1} 
-                      fill="url(#productionGradient)" 
-                      animationDuration={300}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Farm Workers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{workerCount}</div>
-              <p className="text-xs text-muted-foreground">
-                Out of {staff.length} total staff
-              </p>
-              <div className="mt-3">
-                <div className="grid grid-cols-3 gap-1">
-                  {staff.slice(0, 3).map((person) => (
-                    <div key={person.id} className="flex flex-col items-center">
-                      <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                        {person.firstName[0]}{person.lastName[0]}
-                      </div>
-                      <span className="text-xs mt-1 truncate max-w-full">
-                        {person.firstName}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                {staff.length > 3 && (
-                  <Button 
-                    variant="link" 
-                    size="sm" 
-                    className="w-full mt-1 text-xs h-7"
-                    onClick={() => navigate('/staff')}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Houses Monitored</CardTitle>
+                <Home className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{monitoredHouses} / {houses.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Total capacity: {totalCapacity.toLocaleString()} birds
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => navigate('/houses')}
                   >
-                    View All Staff
+                    View Houses
                   </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
+                  <Button
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => navigate('/houses')}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Add House
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Daily Production</CardTitle>
+                <BarChartIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-baseline gap-2">
+                  <div className="text-2xl font-bold">{todayProduction.toLocaleString()}</div>
+                  <Badge variant={productionChange >= 0 ? "default" : "destructive"} className="ml-auto">
+                    {productionChange >= 0 ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
+                    {Math.abs(productionChangePercent).toFixed(1)}%
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  vs {yesterdayProduction.toLocaleString()} yesterday
+                </p>
+                <div className="mt-3">
+                  <ResponsiveContainer width="100%" height={40}>
+                    <AreaChart data={productionChartData}>
+                      <defs>
+                        <linearGradient id="productionGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        type="monotone"
+                        dataKey="eggsCollected"
+                        stroke="#10b981"
+                        fillOpacity={1}
+                        fill="url(#productionGradient)"
+                        animationDuration={300}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Farm Workers</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{workerCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Out of {staff.length} total staff
+                </p>
+                <div className="mt-3">
+                  <div className="grid grid-cols-3 gap-1">
+                    {staff.slice(0, 3).map((person) => (
+                      <div key={person.id} className="flex flex-col items-center">
+                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                          {person.firstName[0]}{person.lastName[0]}
+                        </div>
+                        <span className="text-xs mt-1 truncate max-w-full">
+                          {person.firstName}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {staff.length > 3 && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="w-full mt-1 text-xs h-7"
+                      onClick={() => navigate('/staff')}
+                    >
+                      View All Staff
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           {/* Environmental Monitoring */}
           <Card className="col-span-4">
@@ -452,8 +453,8 @@ const DashboardPage = () => {
                 Real-time conditions in your poultry houses
               </CardDescription>
               <div className="flex space-x-2 mt-2">
-                <select 
-                  value={selectedHouse || ''} 
+                <select
+                  value={selectedHouse || ''}
                   onChange={(e) => setSelectedHouse(e.target.value || null)}
                   className="text-sm p-1 border rounded"
                 >
@@ -475,40 +476,40 @@ const DashboardPage = () => {
                     <XAxis dataKey="time" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
-                    <Tooltip 
-                      formatter={(value: number) => [`${value}`, '']} 
+                    <Tooltip
+                      formatter={(value: number) => [`${value}`, '']}
                       labelFormatter={(label) => `Time: ${label}`}
                     />
-                    <Line 
+                    <Line
                       yAxisId="left"
-                      type="monotone" 
-                      dataKey="temperature" 
-                      name="Temperature (°C)" 
-                      stroke="#ef4444" 
+                      type="monotone"
+                      dataKey="temperature"
+                      name="Temperature (°C)"
+                      stroke="#ef4444"
                       activeDot={{ r: 8 }}
                       strokeWidth={2}
                     />
-                    <Line 
+                    <Line
                       yAxisId="right"
-                      type="monotone" 
-                      dataKey="humidity" 
-                      name="Humidity (%)" 
-                      stroke="#3b82f6" 
+                      type="monotone"
+                      dataKey="humidity"
+                      name="Humidity (%)"
+                      stroke="#3b82f6"
                       strokeWidth={2}
                     />
-                    <Line 
+                    <Line
                       yAxisId="right"
-                      type="monotone" 
-                      dataKey="ammonia" 
-                      name="Ammonia (ppm)" 
-                      stroke="#8b5cf6" 
+                      type="monotone"
+                      dataKey="ammonia"
+                      name="Ammonia (ppm)"
+                      stroke="#8b5cf6"
                       strokeWidth={2}
                       strokeDasharray="5 5"
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              
+
               {/* Current Environmental Readings */}
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg">
@@ -520,7 +521,7 @@ const DashboardPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
                   <Droplet className="h-7 w-7 text-blue-500" />
                   <div>
@@ -530,7 +531,7 @@ const DashboardPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg">
                   <AlertTriangle className="h-7 w-7 text-purple-500" />
                   <div>
@@ -543,7 +544,7 @@ const DashboardPage = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Activity Feed */}
           <Card className="col-span-3">
             <CardHeader>
@@ -556,11 +557,10 @@ const DashboardPage = () => {
               <div className="space-y-4 max-h-[330px] overflow-auto">
                 {activities.map((activity) => (
                   <div key={activity.id} className="flex gap-3">
-                    <div className={`flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center ${
-                      activity.severity === 'warning' ? 'bg-amber-100 text-amber-600' :
+                    <div className={`flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center ${activity.severity === 'warning' ? 'bg-amber-100 text-amber-600' :
                       activity.severity === 'danger' ? 'bg-red-100 text-red-600' :
-                      'bg-blue-100 text-blue-600'
-                    }`}>
+                        'bg-blue-100 text-blue-600'
+                      }`}>
                       {activity.type === 'stock' && <Boxes className="h-4 w-4" />}
                       {activity.type === 'production' && <BarChartIcon className="h-4 w-4" />}
                       {activity.type === 'health' && <Feather className="h-4 w-4" />}
@@ -574,108 +574,109 @@ const DashboardPage = () => {
                   </div>
                 ))}
               </div>
-              
+
               <Button variant="outline" className="w-full mt-4 text-sm">
                 View All Activity
               </Button>
             </CardContent>
           </Card>
         </div>
-        
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {/* Production Trends */}
-          <Card className="col-span-2">
-            <CardHeader className="flex flex-row items-center">
-              <div>
-                <CardTitle>Production Trends</CardTitle>
+        {user?.role !== "Worker" && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Production Trends */}
+            <Card className="col-span-2">
+              <CardHeader className="flex flex-row items-center">
+                <div>
+                  <CardTitle>Production Trends</CardTitle>
+                  <CardDescription>
+                    Daily egg production and mortality rates
+                  </CardDescription>
+                </div>
+                <div className="ml-auto">
+                  <select
+                    value={period}
+                    onChange={(e) => setPeriod(e.target.value)}
+                    className="text-sm p-1 border rounded"
+                  >
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={productionChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                      <Tooltip />
+                      <Bar yAxisId="left" dataKey="eggsCollected" name="Eggs Collected" fill="#10b981" radius={[4, 4, 0, 0]} />
+                      <Bar yAxisId="right" dataKey="deadBirds" name="Mortality" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Stock Levels */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Stock Levels</CardTitle>
                 <CardDescription>
-                  Daily egg production and mortality rates
+                  Current inventory status
                 </CardDescription>
-              </div>
-              <div className="ml-auto">
-                <select 
-                  value={period} 
-                  onChange={(e) => setPeriod(e.target.value)}
-                  className="text-sm p-1 border rounded"
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stockData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        fill="#8884d8"
+                        paddingAngle={2}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}%`}
+                      >
+                        {stockData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [`${value}%`, '']}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="mt-4 grid gap-2">
+                  {stockData.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                      <div className="flex-1 text-sm">{item.name}</div>
+                      <div className="text-sm font-medium">{item.value}%</div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="w-full mt-4 text-sm"
+                  onClick={() => navigate('/stock')}
                 >
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                </select>
-              </div>
-            </CardHeader>
-            <CardContent className="pl-2">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={productionChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                    <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar yAxisId="left" dataKey="eggsCollected" name="Eggs Collected" fill="#10b981" radius={[4, 4, 0, 0]} />
-                    <Bar yAxisId="right" dataKey="deadBirds" name="Mortality" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Stock Levels */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Stock Levels</CardTitle>
-              <CardDescription>
-                Current inventory status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stockData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      paddingAngle={2}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}%`}
-                    >
-                      {stockData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => [`${value}%`, '']}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              
-              <div className="mt-4 grid gap-2">
-                {stockData.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <div className="flex-1 text-sm">{item.name}</div>
-                    <div className="text-sm font-medium">{item.value}%</div>
-                  </div>
-                ))}
-              </div>
-              
-              <Button 
-                variant="outline" 
-                className="w-full mt-4 text-sm"
-                onClick={() => navigate('/stock')}
-              >
-                Manage Stock
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        
+                  Manage Stock
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Today's Tasks */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -705,7 +706,7 @@ const DashboardPage = () => {
                   <Button size="sm" variant="outline">Reassign</Button>
                 </div>
               </div>
-              
+
               <div className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm font-medium">Feed Restocking</div>
@@ -719,7 +720,7 @@ const DashboardPage = () => {
                   <Button size="sm" variant="outline">Reassign</Button>
                 </div>
               </div>
-              
+
               <div className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm font-medium">House 1 Cleaning</div>

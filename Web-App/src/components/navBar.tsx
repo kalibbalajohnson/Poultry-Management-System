@@ -1,3 +1,14 @@
+/**
+ * Navbar.tsx
+ *
+ * Responsive navigation bar for PoultryPal application.
+ * Supports:
+ *  - Desktop menu with dropdowns (uses NavigationMenu)
+ *  - Mobile menu sheet with accordion (uses Sheet + Accordion)
+ *  - Theme toggle (light/dark/system) via DropdownMenu
+ *  - Authentication links (login/signup)
+ *  - Logo link back to home
+ */
 import { useState } from "react";
 import { Book, Menu, Shield, Phone, Sun, Moon, Monitor } from "lucide-react";
 import {
@@ -37,7 +48,7 @@ interface MenuItem {
   icon?: React.ReactNode;
   items?: MenuItem[];
 }
-
+// Props for Navbar component including logo, menu items, and auth links
 interface Navbar1Props {
   logo?: {
     url: string;
@@ -314,7 +325,7 @@ const renderMobileMenuItem = (item: MenuItem) => {
     </a>
   );
 };
-
+// SubMenuLink: used inside desktop dropdown to show icon, title, and description
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
     <a

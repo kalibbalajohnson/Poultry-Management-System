@@ -1,9 +1,5 @@
-<<<<<<< Updated upstream
 import { useState } from 'react';
 import axios from 'axios';
-=======
-import { useState, useEffect } from 'react';
->>>>>>> Stashed changes
 import Layout from '@/components/layout';
 import Navbar2 from '@/components/navBar2';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -14,22 +10,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from 'react-router-dom';
 import { Textarea } from "@/components/ui/textarea";
-<<<<<<< Updated upstream
 import { Toast } from "@/components/ui/toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Minus, Info, AlertTriangle, X } from 'lucide-react';
-=======
-import { Plus, Info, X, Check, AlertCircle, Loader2 } from 'lucide-react';
->>>>>>> Stashed changes
+
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useEffect, useState } from "react"
-import { 
+import {
   BarChart, Calendar, Home, Package, Search, PlusCircle,
   Settings, Users, Menu, ChevronRight, X,
   FlaskConical
@@ -24,12 +24,13 @@ import {
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
 } from "@/components/ui/tooltip"
+import { useNavigate } from "react-router-dom";
 
 // Full navigation menu for managers (admins)
 const fullNav = [
@@ -139,7 +140,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [activeItem, setActiveItem] = useState<string | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { state, toggleSidebar } = useSidebar()
-  
+  const navigate = useNavigate();
+
   // Load sidebar state from localStorage on component mount
   useEffect(() => {
     // Check if user has a stored preference for sidebar state
@@ -148,11 +150,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       // We don't directly set state here as the sidebar already has its own state management
       // but we could use this information if needed
     }
-    
+
     // Set the active item based on current URL
     const path = window.location.pathname
     setActiveItem(path)
-    
+
     // Get user role and set appropriate menu items
     const storedUser = localStorage.getItem("user")
     if (storedUser) {
@@ -164,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       }
     }
   }, [])
-  
+
   // Save sidebar state when it changes
   useEffect(() => {
     localStorage.setItem("sidebar_state", state)
@@ -172,11 +174,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Mobile menu overlay
   const MobileMenu = () => (
-    <div 
+    <div
       className={`fixed inset-0 bg-black/50 z-40 md:hidden ${isMobileMenuOpen ? "block" : "hidden"}`}
       onClick={() => setIsMobileMenuOpen(false)}
     >
-      <div 
+      <div
         className="fixed left-0 top-0 h-full w-64 bg-sidebar p-4 z-50"
         onClick={(e) => e.stopPropagation()}
       >
@@ -191,7 +193,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <X className="h-5 w-5" />
           </Button>
         </div>
-        
+
         <div className="space-y-1">
           {menuItems.map((item) => (
             <div key={item.title} className="mb-1">
@@ -202,7 +204,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     className="w-full justify-between"
                     onClick={() => {
                       if (item.url) {
-                        window.location.href = item.url
+                        navigate(item.url);
                         setIsMobileMenuOpen(false)
                       }
                     }}
@@ -213,7 +215,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </div>
                     {item.items && <ChevronRight className="h-4 w-4" />}
                   </Button>
-                  
+
                   {item.items && (
                     <div className="ml-6 space-y-1 border-l pl-3 border-sidebar-border">
                       {item.items.map((subItem) => (
@@ -225,7 +227,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             activeItem === subItem.url && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           )}
                           onClick={() => {
-                            window.location.href = subItem.url
+                            navigate(subItem.url);
                             setIsMobileMenuOpen(false)
                           }}
                         >
@@ -260,9 +262,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Mobile menu toggle button - shown only on small screens
   const MobileMenuToggle = () => (
-    <Button 
-      variant="ghost" 
-      size="icon" 
+    <Button
+      variant="ghost"
+      size="icon"
       className="fixed top-3 left-3 z-30 md:hidden"
       onClick={() => setIsMobileMenuOpen(true)}
     >
@@ -275,7 +277,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Mobile menu components */}
       <MobileMenuToggle />
       <MobileMenu />
-      
+
       {/* Main sidebar for desktop */}
       <Sidebar {...props} className="hidden md:block">
         <SidebarHeader>
@@ -295,7 +297,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
-        
+
         <SidebarContent>
           <SidebarGroup>
             <SidebarMenu>
@@ -303,16 +305,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-<<<<<<< Updated upstream
-                    isActive={activeItem === item.url}
-=======
                     isActive={activeItem === item.url || 
                              (item.items && item.items.some(subItem => activeItem === subItem.url))}
->>>>>>> Stashed changes
                     tooltip={item.title}
                   >
-                    <a 
-                      href={item.url || "#"} 
+                    <div
+                      role="button"
                       className={cn(
                         "font-medium relative",
                         (activeItem === item.url || 
@@ -321,28 +319,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       )}
                       onClick={() => {
                         if (item.url) {
-                          setActiveItem(item.url)
+                          setActiveItem(item.url);
+                          navigate(item.url);;
                         }
                       }}
                     >
                       {item.icon && <item.icon className="mr-2 size-4" />}
                       {item.title}
-                    </a>
+                    </div>
                   </SidebarMenuButton>
-                  
+
                   {item.items?.length ? (
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={`${subItem.title}-${subItem.url}`}>
-                          <SidebarMenuSubButton 
+                          <SidebarMenuSubButton
                             asChild
                             className={cn(
                               activeItem === subItem.url && "bg-sidebar-accent font-medium"
                             )}
                           >
-                            <a 
-                              href={subItem.url}
-                              onClick={() => setActiveItem(subItem.url)}
+                            <a
+                              role="button"
+                              onClick={() => {
+                                setActiveItem(subItem.url);
+                                navigate(subItem.url);
+                              }}
                             >
                               {subItem.title}
                             </a>
@@ -356,18 +358,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>
-        
+
         <div className="mt-auto p-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-between items-center" 
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-between items-center"
                 onClick={toggleSidebar}
               >
                 <span className="group-data-[collapsible=icon]:hidden">
-                  {state === "expanded" ? "Collapse" : "Expand"}  
+                  {state === "expanded" ? "Collapse" : "Expand"}
                 </span>
                 <ChevronRight className={`h-4 w-4 transition-transform ${state === 'collapsed' ? 'rotate-0' : 'rotate-180'}`} />
               </Button>
@@ -377,7 +379,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </TooltipContent>
           </Tooltip>
         </div>
-        
+
         <SidebarRail />
       </Sidebar>
     </TooltipProvider>
