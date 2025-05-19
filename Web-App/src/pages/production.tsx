@@ -1133,7 +1133,15 @@ function ProductionPage() {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <span>Ensure that all farm workers are adequately trained </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <span>Regular data entry helps identify trends and optimize production</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <span>Set up alerts and notifications for critical production metrics</span>
               </li>
             </ul>
           </CardContent>
