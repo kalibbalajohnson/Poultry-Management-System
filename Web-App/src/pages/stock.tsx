@@ -729,7 +729,6 @@ function StockPage() {
           <ul className="list-disc text-blue-700 text-sm ml-5 space-y-1">
             <li>Set appropriate threshold values to get notified when stock is running low</li>
             <li>Regularly check the "Low Stock Items" filter to see what needs restocking</li>
-            <li>Add supplier information to make reordering easier</li>
             <li>Analyze stock usage patterns to forecast future demand </li>
             <li>Ensure that all staff involved in stock management are well-trained </li>
             <li>Use the notes field to record important details about specific items</li>
