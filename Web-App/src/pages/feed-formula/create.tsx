@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import axios from 'axios';
 import Layout from '@/components/layout';
 import Navbar2 from '@/components/navBar2';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
@@ -12,8 +14,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from 'react-router-dom';
 import { Textarea } from "@/components/ui/textarea";
+import { Toast } from "@/components/ui/toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Info, X } from 'lucide-react';
+
 import {
   Table,
   TableBody,
@@ -61,12 +65,43 @@ type Ingredient = {
 
 function FeedFormulaCreate() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
   const [optimizing, setOptimizing] = useState(false);
   const [optimizationResults, setOptimizationResults] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("manual");
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Form setup
+  const form = useForm<FormData>({
+    resolver: zodResolver(formulaSchema),
+    defaultValues: {
+      name: "",
+      targetNutrition: "balanced",
+      ingredients: [],
+      notes: "",
+    },
+  });
+
+  // Clear messages after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   // Calculate nutritional totals
   const calculateNutritionTotals = () => {
@@ -85,17 +120,6 @@ function FeedFormulaCreate() {
   };
 
   const nutritionTotals = calculateNutritionTotals();
-
-  // Form setup
-  const form = useForm<FormData>({
-    resolver: zodResolver(formulaSchema),
-    defaultValues: {
-      name: "",
-      targetNutrition: "balanced",
-      ingredients: [],
-      notes: "",
-    },
-  });
 
   // Handle adding ingredients
   const handleAddIngredient = (ingredientId: number) => {
@@ -211,19 +235,10 @@ function FeedFormulaCreate() {
       });
       
       setActiveTab("optimized");
-      
-      toast({
-        title: "Optimization Complete",
-        description: "Feed formula has been optimized based on your requirements.",
-        variant: "default",
-      });
+      setSuccessMessage("Feed formula has been optimized based on your requirements.");
     } catch (error) {
       console.error('Optimization error:', error);
-      toast({
-        variant: "destructive",
-        title: "Optimization Failed",
-        description: "There was an error optimizing the feed formula. Please try again.",
-      });
+      setErrorMessage("There was an error optimizing the feed formula. Please try again.");
     } finally {
       setOptimizing(false);
     }
@@ -234,6 +249,7 @@ function FeedFormulaCreate() {
     if (optimizationResults) {
       setSelectedIngredients(optimizationResults.ingredients);
       setActiveTab("manual");
+      setSuccessMessage("Optimized formula applied successfully.");
     }
   };
 
@@ -261,21 +277,15 @@ function FeedFormulaCreate() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Show success message
-      toast({
-        title: "Formula Saved",
-        description: "Your feed formula has been saved successfully.",
-        variant: "default",
-      });
+      setSuccessMessage("Your feed formula has been saved successfully.");
       
-      // Navigate to formula list page
-      navigate('/feed-formula');
+      // Navigate to formula list page after a short delay
+      setTimeout(() => {
+        navigate('/feed-formula');
+      }, 1500);
     } catch (error) {
       console.error('Error saving formula:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "There was an error saving your formula. Please try again.",
-      });
+      setErrorMessage("There was an error saving your formula. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -285,6 +295,21 @@ function FeedFormulaCreate() {
     <Layout>
       <Navbar2 />
       <div className="w-full space-y-4 p-4 md:p-8">
+        {/* Success and Error Messages */}
+        {successMessage && (
+          <Alert className="border-green-200 bg-green-50 text-green-800">
+            <Check className="h-4 w-4 mr-2" />
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
+        )}
+        
+        {errorMessage && (
+          <Alert className="border-red-200 bg-red-50 text-red-800">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+        
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-semibold mb-1">Create Feed Formula</h2>
@@ -302,7 +327,12 @@ function FeedFormulaCreate() {
               disabled={loading || selectedIngredients.length === 0}
               className="bg-green-700 hover:bg-green-800"
             >
-              {loading ? 'Saving...' : 'Save Formula'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : 'Save Formula'}
             </Button>
           </div>
         </div>
@@ -403,7 +433,12 @@ function FeedFormulaCreate() {
                     disabled={optimizing}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {optimizing ? 'Optimizing...' : 'Optimize Formula'}
+                    {optimizing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Optimizing...
+                      </>
+                    ) : 'Optimize Formula'}
                   </Button>
                 </div>
               </CardContent>

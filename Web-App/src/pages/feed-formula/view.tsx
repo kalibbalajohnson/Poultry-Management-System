@@ -5,9 +5,9 @@ import Navbar2 from '@/components/navBar2';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/components/ui/use-toast";
 import { AlertTriangle, Check, ChevronLeft, Download, Edit, Info, Printer} from 'lucide-react';
 import {
   Table,
@@ -105,12 +105,13 @@ const getNutritionTypeColor = (type: string) => {
 function FeedFormulaView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [formula, setFormula] = useState<FeedFormula | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("composition");
   const [nutritionData, setNutritionData] = useState<any>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFormula = async () => {
@@ -149,18 +150,38 @@ function FeedFormulaView() {
       } catch (err) {
         console.error('Error fetching formula:', err);
         setError('Failed to load formula details. Please try again later.');
-        toast({
-          variant: "destructive",
-          title: "Error Loading Formula",
-          description: "There was a problem loading the formula details.",
-        });
+        setErrorMessage('There was a problem loading the formula details.');
+        
+        // Clear error message after 3 seconds
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
       } finally {
         setLoading(false);
       }
     };
 
     fetchFormula();
-  }, [id, toast]);
+  }, [id]);
+
+  // Clear messages after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   const handlePrint = () => {
     window.print();
@@ -169,29 +190,31 @@ function FeedFormulaView() {
   const handleExportCSV = () => {
     if (!formula) return;
     
-    // Create CSV content
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Feed Formula: " + formula.name + "\r\n";
-    csvContent += "Target Nutrition: " + formula.targetNutrition + "\r\n\r\n";
-    csvContent += "Ingredient,Quantity (kg)\r\n";
-    
-    formula.ingredients.forEach(ing => {
-      csvContent += `${ing.name},${ing.quantity}\r\n`;
-    });
-    
-    // Create download link and trigger download
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${formula.name.replace(/\s+/g, '_')}_formula.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Export Successful",
-      description: "Formula has been exported as CSV file.",
-    });
+    try {
+      // Create CSV content
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Feed Formula: " + formula.name + "\r\n";
+      csvContent += "Target Nutrition: " + formula.targetNutrition + "\r\n\r\n";
+      csvContent += "Ingredient,Quantity (kg)\r\n";
+      
+      formula.ingredients.forEach(ing => {
+        csvContent += `${ing.name},${ing.quantity}\r\n`;
+      });
+      
+      // Create download link and trigger download
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `${formula.name.replace(/\s+/g, '_')}_formula.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setSuccessMessage("Formula has been exported as CSV file.");
+    } catch (error) {
+      setErrorMessage("Failed to export formula. Please try again.");
+      console.error("Export error:", error);
+    }
   };
 
   if (loading) {
@@ -244,6 +267,21 @@ function FeedFormulaView() {
     <Layout>
       <Navbar2 />
       <div className="w-full space-y-4 p-4 md:p-8">
+        {/* Success and Error Messages */}
+        {successMessage && (
+          <Alert className="border-green-200 bg-green-50 text-green-800">
+            <Check className="h-4 w-4 mr-2" />
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
+        )}
+        
+        {errorMessage && (
+          <Alert className="border-red-200 bg-red-50 text-red-800">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+        
         {/* Header with Title and Actions */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
