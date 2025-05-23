@@ -22,17 +22,18 @@ import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Feather, Boxes, Users, AlertTriangle, Edit, Archive, CheckCircle } from "lucide-react";
+import { Feather, Boxes, AlertTriangle, Edit, Archive, CheckCircle, TrendingDown, Skull, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ColumnDef } from "@tanstack/react-table";
+import { BirdCountUpdateDialog } from '@/components/birdCountUpdateDialog';
 
 const batchSchema = z.object({
   name: z.string().min(1, "Batch name is required"),
   arrivalDate: z.string().min(1, "Arrival date is required"),
   ageAtArrival: z.coerce.number().min(0, "Age at arrival must be at least 0"),
   chickenType: z.string().min(1, "Chicken type is required"),
-  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  originalCount: z.coerce.number().min(1, "Original count must be at least 1"),
   supplier: z.string().min(1, "Supplier is required"),
   isArchived: z.boolean().optional(),
 });
@@ -46,6 +47,7 @@ function BatchPage() {
   const [editMode, setEditMode] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [countUpdateDialogOpen, setCountUpdateDialogOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(batchSchema),
@@ -54,7 +56,7 @@ function BatchPage() {
       arrivalDate: "",
       ageAtArrival: 0,
       chickenType: "",
-      quantity: 0,
+      originalCount: 0,
       supplier: "",
       isArchived: false,
     },
@@ -70,7 +72,7 @@ function BatchPage() {
         arrivalDate: "",
         ageAtArrival: 0,
         chickenType: "",
-        quantity: 0,
+        originalCount: 0,
         supplier: "",
         isArchived: false,
       });
@@ -85,7 +87,7 @@ function BatchPage() {
         arrivalDate: new Date(selectedBatch.arrivalDate).toISOString().split('T')[0],
         ageAtArrival: selectedBatch.ageAtArrival,
         chickenType: selectedBatch.chickenType,
-        quantity: selectedBatch.quantity,
+        originalCount: selectedBatch.originalCount,
         supplier: selectedBatch.supplier,
         isArchived: selectedBatch.isArchived || false,
       });
@@ -129,7 +131,7 @@ function BatchPage() {
       setOpen(false);
       setEditMode(false);
       setSelectedBatch(null);
-      refetch(); // Refresh data after adding/updating batch
+      refetch();
     } catch (error) {
       console.error(
         editMode ? 'Batch update error:' : 'Batch creation error:',
@@ -159,7 +161,7 @@ function BatchPage() {
       
       setArchiveDialogOpen(false);
       setSelectedBatch(null);
-      refetch(); // Refresh data after archiving
+      refetch();
     } catch (error) {
       console.error(
         'Batch archive error:',
@@ -183,19 +185,32 @@ function BatchPage() {
           });
 
         if (!res.ok) throw new Error('Failed to fetch batch data');
-        return res.json();
+        const data = await res.json();
+        
+        // Calculate currentCount for each batch
+        return data.map((batch: any) => ({
+          ...batch,
+          currentCount: batch.originalCount - (batch.dead + batch.culled + batch.offlaid)
+        }));
       } catch (err) {
         console.error('Failed to fetch batch data:', err);
         throw err;
       }
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 
   // Calculate statistics
-  const totalBirds = batches?.reduce((sum, batch) => sum + batch.quantity, 0) || 0;
+  const totalBirds = batches?.reduce((sum, batch) => sum + batch.currentCount, 0) || 0;
+  const originalTotalBirds = batches?.reduce((sum, batch) => sum + batch.originalCount, 0) || 0;
   const activeBatches = batches?.filter(batch => !batch.isArchived)?.length || 0;
   const archivedBatches = batches?.filter(batch => batch.isArchived)?.length || 0;
+  const totalDeaths = batches?.reduce((sum, batch) => sum + (batch.dead || 0), 0) || 0;
+  const totalCulled = batches?.reduce((sum, batch) => sum + (batch.culled || 0), 0) || 0;
+  const totalOfflaid = batches?.reduce((sum, batch) => sum + (batch.offlaid || 0), 0) || 0;
+  const totalLoss = totalDeaths + totalCulled + totalOfflaid;
+  const mortalityRate = originalTotalBirds > 0 ? ((totalDeaths / originalTotalBirds) * 100) : 0;
+  const survivalRate = originalTotalBirds > 0 ? ((totalBirds / originalTotalBirds) * 100) : 0;
   
   // Types of chickens
   const chickenTypes = batches?.reduce((types, batch) => {
@@ -214,9 +229,26 @@ function BatchPage() {
     return batch.chickenType === selectedFilter;
   });
 
-  // Create custom columns with edit and archive actions
+  // Create custom columns with edit, archive, and update count actions
   const enhancedColumns: ColumnDef<Batch>[] = [
-    ...columns.slice(0, -1), // Use all original columns except the last one (actions)
+    ...columns.slice(0, -1),
+    {
+      id: "currentCount",
+      accessorKey: "currentCount",
+      header: "Current Count",
+      cell: ({ row }) => {
+        const batch = row.original;
+        const lossCount = (batch.dead || 0) + (batch.culled || 0) + (batch.offlaid || 0);
+        return (
+          <div className="flex flex-col">
+            <span className="font-medium">{batch.currentCount}</span>
+            {lossCount > 0 && (
+              <span className="text-xs text-red-500">-{lossCount} lost</span>
+            )}
+          </div>
+        );
+      },
+    },
     {
       id: "actions",
       header: "Actions",
@@ -236,6 +268,18 @@ function BatchPage() {
             >
               <Edit className="h-4 w-4" />
               <span className="sr-only">Edit</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setSelectedBatch(batch);
+                setCountUpdateDialogOpen(true);
+              }}
+              className="h-8 w-8 p-0"
+            >
+              <TrendingDown className="h-4 w-4" />
+              <span className="sr-only">Update Counts</span>
             </Button>
             <Button 
               variant="ghost" 
@@ -349,12 +393,12 @@ function BatchPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="quantity"
+                        name="originalCount"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Quantity</FormLabel>
+                            <FormLabel>Original Count</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="Enter quantity" {...field} />
+                              <Input type="number" placeholder="Enter original count" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -432,7 +476,7 @@ function BatchPage() {
                 <div>
                   <h4 className="font-medium">{selectedBatch?.name}</h4>
                   <p className="text-sm text-gray-500">
-                    {selectedBatch?.quantity} birds - {selectedBatch?.chickenType}
+                    {selectedBatch?.currentCount} current / {selectedBatch?.originalCount} original birds - {selectedBatch?.chickenType}
                   </p>
                 </div>
               </div>
@@ -451,16 +495,75 @@ function BatchPage() {
             </DialogContent>
           </Dialog>
 
-          {/* Key statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {/* Bird Count Update Dialog */}
+          <BirdCountUpdateDialog
+            batch={selectedBatch}
+            open={countUpdateDialogOpen}
+            onOpenChange={setCountUpdateDialogOpen}
+            onSuccess={() => {
+              refetch();
+              setSelectedBatch(null);
+            }}
+          />
+
+          {/* Enhanced statistics with 6 cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             <Card className="bg-white shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">Total Birds</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-500">Current Birds</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center">
-                  <Feather className="h-5 w-5 text-gray-700 mr-2" />
-                  <span className="text-2xl font-bold">{totalBirds}</span>
+                  <Feather className="h-5 w-5 text-green-700 mr-2" />
+                  <span className="text-2xl font-bold">{totalBirds.toLocaleString()}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  of {originalTotalBirds.toLocaleString()} original
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">Survival Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <Heart className="h-5 w-5 text-green-600 mr-2" />
+                  <span className="text-2xl font-bold">{survivalRate.toFixed(1)}%</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {totalBirds} birds surviving
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">Total Deaths</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <Skull className="h-5 w-5 text-red-600 mr-2" />
+                  <span className="text-2xl font-bold">{totalDeaths.toLocaleString()}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {mortalityRate.toFixed(1)}% mortality rate
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">Total Loss</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <TrendingDown className="h-5 w-5 text-orange-600 mr-2" />
+                  <span className="text-2xl font-bold">{totalLoss.toLocaleString()}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Deaths + Culled + Offlaid
                 </div>
               </CardContent>
             </Card>
@@ -471,20 +574,11 @@ function BatchPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center">
-                  <Boxes className="h-5 w-5 text-gray-700 mr-2" />
+                  <Boxes className="h-5 w-5 text-blue-600 mr-2" />
                   <span className="text-2xl font-bold">{activeBatches}</span>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">Archived Batches</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
-                  <Users className="h-5 w-5 text-gray-700 mr-2" />
-                  <span className="text-2xl font-bold">{archivedBatches}</span>
+                <div className="text-xs text-gray-500 mt-1">
+                  {archivedBatches} archived
                 </div>
               </CardContent>
             </Card>
@@ -494,9 +588,9 @@ function BatchPage() {
                 <CardTitle className="text-sm font-medium text-gray-500">Bird Types</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1">
                   {Object.entries(chickenTypes).map(([type, count]) => (
-                    <Badge key={type} variant="outline">
+                    <Badge key={type} variant="outline" className="text-xs">
                       {type}: {count}
                     </Badge>
                   ))}
@@ -569,14 +663,15 @@ function BatchPage() {
           <div className="mt-8 bg-blue-50 p-4 rounded-lg">
             <h3 className="text-md font-semibold text-blue-900 mb-2">Batch Management Tips</h3>
             <ul className="list-disc pl-5 text-blue-800 text-sm">
-              <li>Regularly update batch information to maintain accurate records</li>
+              <li>Regularly update bird counts to maintain accurate records</li>
+              <li>Monitor mortality rates closely - increases may indicate health issues</li>
               <li>Archive inactive batches to keep your dashboard organized</li>
-              <li>Monitor age progression to plan feeding and healthcare schedules</li>
               <li>Use batch filters to quickly find the information you need</li>
+              <li>Track age progression to plan feeding and healthcare schedules</li>
             </ul>
           </div>
           
-          {/* Simple helper messages that don't require Tooltip component */}
+          {/* Helper messages */}
           <div className="mt-6 text-sm text-gray-500 flex items-center gap-2">
             <div className="bg-gray-200 p-2 rounded-full">?</div>
             <p>Need help with batch management? Contact your administrator or check the user manual.</p>

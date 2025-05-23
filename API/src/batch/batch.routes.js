@@ -10,6 +10,7 @@ router.post("/", batchController.createBatch);
 router.get("/:id", batchController.getBatchById);
 router.patch("/:id", batchController.updateBatch);
 router.delete("/:id", batchController.deleteBatch);
+router.patch("/:id/counts", batchController.updateBirdCounts);
 router.post("/allocation", batchController.createBatchAllocation);
 router.get("/allocations/:batchId", batchController.getBatchAllocations);
 router.get("/allocation/:houseId", batchController.getHouseBatchAllocations);

@@ -10,12 +10,26 @@ const batchSchema = new mongoose.Schema(
     ageAtArrival: { type: Number, required: true },
     age: { type: Number },
     chickenType: { type: String, required: true },
-    quantity: { type: Number, required: true },
+    originalCount: { type: Number, required: true }, // Renamed from quantity
     supplier: { type: String, required: true },
+    dead: { type: Number, default: 0 }, // Number of birds that died
+    culled: { type: Number, default: 0 }, // Number of birds that were culled
+    offlaid: { type: Number, default: 0 }, // Number of birds that were offlaid/sold
     isArchived: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    // Add virtual field for current count
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
+
+// Virtual field to calculate current count
+batchSchema.virtual('currentCount').get(function() {
+  return this.originalCount - (this.dead + this.culled + this.offlaid);
+});
+
 const Batch = mongoose.model("Batch", batchSchema);
 
 const batchAllocationSchema = new mongoose.Schema(

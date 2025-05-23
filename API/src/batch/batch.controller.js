@@ -29,7 +29,7 @@ const createBatch = async (req, res) => {
         .status(400)
         .json({ message: "User does not belong to a farm" });
     }
-    const { name, arrivalDate, ageAtArrival, chickenType, quantity, supplier } =
+    const { name, arrivalDate, ageAtArrival, chickenType, originalCount, supplier } =
       req.body;
 
     const newBatch = new Batch({
@@ -38,8 +38,11 @@ const createBatch = async (req, res) => {
       arrivalDate,
       ageAtArrival,
       chickenType,
-      quantity,
+      originalCount, // Use originalCount instead of quantity
       supplier,
+      dead: 0, // Initialize tracking attributes
+      culled: 0,
+      offlaid: 0,
     });
 
     await newBatch.save();
@@ -66,7 +69,7 @@ const getBatchById = async (req, res) => {
       return res.status(404).json({ message: "Batch not found" });
     }
 
-    res.status(200).json(house);
+    res.status(200).json(batch);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -84,6 +87,32 @@ const updateBatch = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
+    // Validate tracking attributes if provided
+    if (updates.dead !== undefined || updates.culled !== undefined || updates.offlaid !== undefined) {
+      const batch = await Batch.findOne({ id: batchId, farmId: user.farmId });
+      if (!batch) {
+        return res.status(404).json({ message: "Batch not found or unauthorized" });
+      }
+
+      const newDead = updates.dead !== undefined ? updates.dead : batch.dead;
+      const newCulled = updates.culled !== undefined ? updates.culled : batch.culled;
+      const newOfflaid = updates.offlaid !== undefined ? updates.offlaid : batch.offlaid;
+
+      // Ensure the sum doesn't exceed original count
+      if (newDead + newCulled + newOfflaid > batch.originalCount) {
+        return res.status(400).json({ 
+          message: "Total of dead, culled, and offlaid birds cannot exceed original count" 
+        });
+      }
+
+      // Ensure all values are non-negative
+      if (newDead < 0 || newCulled < 0 || newOfflaid < 0) {
+        return res.status(400).json({ 
+          message: "Dead, culled, and offlaid counts must be non-negative" 
+        });
+      }
+    }
+
     const batch = await Batch.findOneAndUpdate(
       { id: batchId, farmId: user.farmId },
       updates,
@@ -96,7 +125,7 @@ const updateBatch = async (req, res) => {
         .json({ message: "Batch not found or unauthorized" });
     }
 
-    res.status(200).json(house);
+    res.status(200).json(batch);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -130,6 +159,69 @@ const deleteBatch = async (req, res) => {
   }
 };
 
+// New endpoint to update bird counts (dead, culled, offlaid)
+const updateBirdCounts = async (req, res) => {
+  try {
+    const user = req.user;
+    const batchId = req.params.id;
+    const { dead, culled, offlaid, reason, notes } = req.body;
+
+    if (!user.farmId) {
+      return res
+        .status(400)
+        .json({ message: "User does not belong to a farm" });
+    }
+
+    const batch = await Batch.findOne({ id: batchId, farmId: user.farmId });
+    if (!batch) {
+      return res.status(404).json({ message: "Batch not found or unauthorized" });
+    }
+
+    // Validate that at least one count is provided
+    if (dead === undefined && culled === undefined && offlaid === undefined) {
+      return res.status(400).json({ message: "At least one count (dead, culled, or offlaid) must be provided" });
+    }
+
+    // Calculate new totals
+    const newDead = dead !== undefined ? batch.dead + dead : batch.dead;
+    const newCulled = culled !== undefined ? batch.culled + culled : batch.culled;
+    const newOfflaid = offlaid !== undefined ? batch.offlaid + offlaid : batch.offlaid;
+
+    // Validate totals don't exceed original count
+    if (newDead + newCulled + newOfflaid > batch.originalCount) {
+      return res.status(400).json({ 
+        message: "Total of dead, culled, and offlaid birds cannot exceed original count",
+        currentTotal: batch.dead + batch.culled + batch.offlaid,
+        originalCount: batch.originalCount,
+        requestedAddition: (dead || 0) + (culled || 0) + (offlaid || 0)
+      });
+    }
+
+    // Update the batch
+    const updatedBatch = await Batch.findOneAndUpdate(
+      { id: batchId, farmId: user.farmId },
+      { 
+        dead: newDead,
+        culled: newCulled,
+        offlaid: newOfflaid
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Bird counts updated successfully",
+      batch: updatedBatch,
+      changes: {
+        dead: dead || 0,
+        culled: culled || 0,
+        offlaid: offlaid || 0
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const createBatchAllocation = async (req, res) => {
   try {
     const user = req.user;
@@ -146,8 +238,13 @@ const createBatchAllocation = async (req, res) => {
       return res.status(404).json({ message: "Batch not found" });
     }
 
-    if (quantity > batch.quantity) {
-      return res.status(400).json({ message: "Not enough birds in batch" });
+    // Use currentCount instead of originalCount for allocation
+    if (quantity > batch.currentCount) {
+      return res.status(400).json({ 
+        message: "Not enough birds available in batch",
+        availableBirds: batch.currentCount,
+        requestedQuantity: quantity
+      });
     }
 
     const house = await House.findOne({ id: houseId, farmId: user.farmId });
@@ -181,9 +278,7 @@ const createBatchAllocation = async (req, res) => {
       await allocation.save();
     }
 
-    batch.quantity -= quantity;
-    await batch.save();
-
+    // Don't modify the originalCount, but we could track allocations separately if needed
     res.status(201).json(allocation);
   } catch (error) {
     console.error("Batch Allocation Error:", error);
@@ -377,4 +472,5 @@ export default {
   getHouseBatchAllocations,
   updateBatchAllocation,
   transferBirds,
+  updateBirdCounts, // New endpoint
 };
