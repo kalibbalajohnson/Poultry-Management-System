@@ -456,7 +456,7 @@ function BatchPage() {
         
         return (
           <div className="flex flex-col gap-1">
-            <span className="font-medium">{batch?.currentCount.toLocaleString()}</span>
+            <span className="font-medium">{batch?.currentCount?.toLocaleString()}</span>
             {lossCount > 0 && (
               <Badge variant="outline" className={`text-xs ${badgeColor}`}>
                 {survivalPercentage.toFixed(1)}% remaining
