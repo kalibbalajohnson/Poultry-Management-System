@@ -461,6 +461,19 @@ function ProductionPage() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row }) => {
+        const record = row.original as EnhancedProduction;
+        return (
+          <div className="flex items-center gap-2">
+            <span>{record.batchName}</span>
+            {isNewRecord(record.createdAt) && (
+              <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                New
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "date",
@@ -593,6 +606,13 @@ function ProductionPage() {
       // Ensures loading state resets even if an error occurs
       setTimeout(() => setIsExporting(false), 1000);
     }
+  };
+
+  const isNewRecord = (createdAt: string) => {
+    const createdDate = new Date(createdAt);
+    const now = new Date();
+    const diffInMinutes = (now.getTime() - createdDate.getTime()) / 1000 / 60;
+    return diffInMinutes < 1440;
   };
 
   return (

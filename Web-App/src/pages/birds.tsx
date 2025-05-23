@@ -435,7 +435,7 @@ function BatchPage() {
       ),
       cell: ({ row }) => {
         const value = row.getValue("originalCount") as number;
-        return <div className="font-medium">{value.toLocaleString()}</div>;
+        return <div className="font-medium">{value?.toLocaleString()}</div>;
       },
     },
     {

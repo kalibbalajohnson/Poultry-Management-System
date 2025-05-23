@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const SensorDataSchema = new mongoose.Schema({
   id: { type: String, default: uuidv4, unique: true, required: true },
-  houseId: { type: String, required: true },
+  ammonia: Number,
   temperature: Number,
   humidity: Number,
   timestamp: { type: Date, default: Date.now }
