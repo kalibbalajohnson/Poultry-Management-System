@@ -41,6 +41,11 @@ const batchSchema = z.object({
 
 type FormData = z.infer<typeof batchSchema>;
 
+// Enhanced Batch interface with calculated fields
+interface EnhancedBatch extends Batch {
+  currentCount: number;
+}
+
 // Bird Count Update Dialog Component
 const BirdCountUpdateDialog = ({ 
   batch, 
@@ -48,7 +53,7 @@ const BirdCountUpdateDialog = ({
   onOpenChange, 
   onSuccess 
 }: {
-  batch: Batch | null;
+  batch: EnhancedBatch | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
@@ -174,12 +179,27 @@ const BirdCountUpdateDialog = ({
   );
 };
 
+// Helper function to safely calculate current count
+const calculateCurrentCount = (batch: any): number => {
+  const originalCount = batch.originalCount || 0;
+  const dead = batch.dead || 0;
+  const culled = batch.culled || 0;
+  const offlaid = batch.offlaid || 0;
+  return Math.max(0, originalCount - (dead + culled + offlaid));
+};
+
+// Helper function to safely format numbers
+const safeToLocaleString = (value: any): string => {
+  const num = Number(value);
+  return isNaN(num) ? '0' : num.toLocaleString();
+};
+
 function BatchPage() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [editMode, setEditMode] = useState(false);
-  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+  const [selectedBatch, setSelectedBatch] = useState<EnhancedBatch | null>(null);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [countUpdateDialogOpen, setCountUpdateDialogOpen] = useState(false);
   const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
@@ -308,7 +328,7 @@ function BatchPage() {
     }
   };
 
-  const { data: batches = [], isLoading, isError, refetch } = useQuery<Batch[]>({
+  const { data: batches = [], isLoading, isError, refetch } = useQuery<EnhancedBatch[]>({
     queryKey: ['batches'],
     queryFn: async () => {
       try {
@@ -323,10 +343,15 @@ function BatchPage() {
         if (!res.ok) throw new Error('Failed to fetch batch data');
         const data = await res.json();
         
-        // Calculate currentCount for each batch
-        return data.map((batch: any) => ({
+        // Calculate currentCount for each batch with safe handling
+        return data.map((batch: any): EnhancedBatch => ({
           ...batch,
-          currentCount: batch.originalCount - ((batch.dead || 0) + (batch.culled || 0) + (batch.offlaid || 0))
+          currentCount: calculateCurrentCount(batch),
+          // Ensure all required fields exist with default values
+          dead: batch.dead || 0,
+          culled: batch.culled || 0,
+          offlaid: batch.offlaid || 0,
+          originalCount: batch.originalCount || 0,
         }));
       } catch (err) {
         console.error('Failed to fetch batch data:', err);
@@ -336,9 +361,9 @@ function BatchPage() {
     refetchInterval: 30000,
   });
 
-  // Calculate statistics
-  const totalBirds = batches?.reduce((sum, batch) => sum + batch.currentCount, 0) || 0;
-  const originalTotalBirds = batches?.reduce((sum, batch) => sum + batch.originalCount, 0) || 0;
+  // Calculate statistics with safe handling
+  const totalBirds = batches?.reduce((sum, batch) => sum + (batch.currentCount || 0), 0) || 0;
+  const originalTotalBirds = batches?.reduce((sum, batch) => sum + (batch.originalCount || 0), 0) || 0;
   const activeBatches = batches?.filter(batch => !batch.isArchived)?.length || 0;
   const archivedBatches = batches?.filter(batch => batch.isArchived)?.length || 0;
   const totalDeaths = batches?.reduce((sum, batch) => sum + (batch.dead || 0), 0) || 0;
@@ -365,8 +390,8 @@ function BatchPage() {
     return batch.chickenType === selectedFilter;
   });
 
-  // Create custom columns with enhanced functionality
-  const enhancedColumns: ColumnDef<Batch>[] = [
+  // Create custom columns with enhanced functionality and safe handling
+  const enhancedColumns: ColumnDef<EnhancedBatch>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -435,7 +460,7 @@ function BatchPage() {
       ),
       cell: ({ row }) => {
         const value = row.getValue("originalCount") as number;
-        return <div className="font-medium">{value.toLocaleString()}</div>;
+        return <div className="font-medium">{safeToLocaleString(value)}</div>;
       },
     },
     {
@@ -444,8 +469,10 @@ function BatchPage() {
       header: "Current Count",
       cell: ({ row }) => {
         const batch = row.original;
+        const currentCount = batch.currentCount || 0;
+        const originalCount = batch.originalCount || 1; // Prevent division by zero
         const lossCount = (batch.dead || 0) + (batch.culled || 0) + (batch.offlaid || 0);
-        const survivalPercentage = batch.originalCount > 0 ? ((batch.currentCount / batch.originalCount) * 100) : 0;
+        const survivalPercentage = originalCount > 0 ? ((currentCount / originalCount) * 100) : 0;
         
         let badgeColor = "bg-green-100 text-green-800";
         if (survivalPercentage < 50) {
@@ -456,7 +483,7 @@ function BatchPage() {
         
         return (
           <div className="flex flex-col gap-1">
-            <span className="font-medium">{batch.currentCount.toLocaleString()}</span>
+            <span className="font-medium">{safeToLocaleString(currentCount)}</span>
             {lossCount > 0 && (
               <Badge variant="outline" className={`text-xs ${badgeColor}`}>
                 {survivalPercentage.toFixed(1)}% remaining
@@ -713,7 +740,7 @@ function BatchPage() {
                 <div>
                   <h4 className="font-medium">{selectedBatch?.name}</h4>
                   <p className="text-sm text-gray-500">
-                    {selectedBatch?.currentCount} current / {selectedBatch?.originalCount} original birds - {selectedBatch?.chickenType}
+                    {safeToLocaleString(selectedBatch?.currentCount)} current / {safeToLocaleString(selectedBatch?.originalCount)} original birds - {selectedBatch?.chickenType}
                   </p>
                 </div>
               </div>
