@@ -9,8 +9,7 @@ const getSensorDataForHouse = async (req, res) => {
         .json({ message: "User does not belong to a farm" });
     }
 
-    const { houseId } = req.params;
-    const data = await SensorData.find({ houseId }).sort({ timestamp: -1 });
+    const data = await SensorData.find().sort({ timestamp: -1 });
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -19,14 +18,14 @@ const getSensorDataForHouse = async (req, res) => {
 
 const createSensorDataForHouse = async (req, res) => {
   try {
-    const { houseId, temperature, humidity } = req.body;
+    const { ammonia, temperature, humidity } = req.body;
 
-    if (!houseId || temperature == null || humidity == null) {
+    if (ammonia == null || temperature == null || humidity == null) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const sensorData = await SensorData.create({
-      houseId,
+      ammonia,
       temperature,
       humidity,
     });

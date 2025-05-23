@@ -5,7 +5,7 @@ import authMiddleware from "../../config/authMiddleware.js";
 const router = express.Router();
 router.use(authMiddleware);
 
-router.get("house/:houseId", monitoringController.getSensorDataForHouse);
-router.post("/house", monitoringController.createSensorDataForHouse);
+router.get("/", monitoringController.getSensorDataForHouse);
+router.post("/", monitoringController.createSensorDataForHouse);
 
 export default router;
