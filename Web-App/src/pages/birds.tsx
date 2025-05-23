@@ -456,7 +456,7 @@ function BatchPage() {
         
         return (
           <div className="flex flex-col gap-1">
-            <span className="font-medium">{batch.currentCount.toLocaleString()}</span>
+            <span className="font-medium">{batch?.currentCount.toLocaleString()}</span>
             {lossCount > 0 && (
               <Badge variant="outline" className={`text-xs ${badgeColor}`}>
                 {survivalPercentage.toFixed(1)}% remaining
@@ -754,10 +754,10 @@ function BatchPage() {
                 <CardContent>
                   <div className="flex items-center">
                     <Feather className="h-5 w-5 text-green-700 mr-2" />
-                    <span className="text-2xl font-bold">{totalBirds.toLocaleString()}</span>
+                    <span className="text-2xl font-bold">{totalBirds?.toLocaleString()}</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    of {originalTotalBirds.toLocaleString()} original
+                    of {originalTotalBirds?.toLocaleString()} original
                   </div>
                 </CardContent>
               </Card>
@@ -784,7 +784,7 @@ function BatchPage() {
                 <CardContent>
                   <div className="flex items-center">
                     <Skull className="h-5 w-5 text-red-600 mr-2" />
-                    <span className="text-2xl font-bold">{totalDeaths.toLocaleString()}</span>
+                    <span className="text-2xl font-bold">{totalDeaths?.toLocaleString()}</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {mortalityRate.toFixed(1)}% mortality rate
@@ -799,7 +799,7 @@ function BatchPage() {
                 <CardContent>
                   <div className="flex items-center">
                     <TrendingDown className="h-5 w-5 text-orange-600 mr-2" />
-                    <span className="text-2xl font-bold">{totalLoss.toLocaleString()}</span>
+                    <span className="text-2xl font-bold">{totalLoss?.toLocaleString()}</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     Deaths + Culled + Offlaid
