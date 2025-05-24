@@ -36,7 +36,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
@@ -45,26 +44,19 @@ import {
   ArrowUpDown,
   ArrowUp,
   BarChart,
-  Calendar,
   Check,
   Egg,
   FileText,
   Filter,
   Loader2,
-  MoreHorizontal,
   Plus,
   Skull,
-  X
+  X,
+  Package,
+  TrendingUp,
+  AlertTriangle
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -81,18 +73,32 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  Legend
+  ResponsiveContainer
 } from 'recharts';
 import { format, subDays, differenceInDays } from 'date-fns';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Enhanced schema for the production form
+// Enhanced schema for the production form with tray-based entry
 const productionSchema = z.object({
   batchId: z.string().min(1, "Batch is required"),
   date: z.string().min(1, "Date is required"),
   numberOfDeadBirds: z.coerce.number().min(0, "Dead Birds must be at least 0"),
-  numberOfEggsCollected: z.coerce.number().min(0, "Eggs Collected must be at least 0"),
+  entryMode: z.enum(['trays', 'eggs']).default('trays'),
+  // Tray-based fields
+  numberOfTrays: z.coerce.number().min(0, "Number of trays must be at least 0").optional(),
+  extraEggs: z.coerce.number().min(0, "Extra eggs must be at least 0").max(29, "Extra eggs cannot exceed 29").optional(),
+  // Direct egg entry field
+  numberOfEggsCollected: z.coerce.number().min(0, "Eggs collected must be at least 0").optional(),
   notes: z.string().optional(),
+}).refine((data) => {
+  if (data.entryMode === 'trays') {
+    return data.numberOfTrays !== undefined;
+  } else {
+    return data.numberOfEggsCollected !== undefined;
+  }
+}, {
+  message: "Please enter either trays or eggs based on selected entry mode",
+  path: ["numberOfTrays"]
 });
 
 type FormData = z.infer<typeof productionSchema>;
@@ -103,10 +109,17 @@ interface EnhancedProduction extends Production {
   batchType?: string;
   notes?: string;
   id: string;
+  numberOfTrays?: number;
+  extraEggs?: number;
+  productionRate?: number;
+  batchCurrentCount?: number;
 }
 
 // Date range type for filtering
 type DateRange = '7days' | '30days' | '90days' | 'all';
+
+// Constants
+const EGGS_PER_TRAY = 30;
 
 function ProductionPage() {
   const [loading, setLoading] = useState(false);
@@ -119,6 +132,7 @@ function ProductionPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [entryMode, setEntryMode] = useState<'trays' | 'eggs'>('trays');
   const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const user = storedUser ? JSON.parse(storedUser) : null;
 
@@ -128,21 +142,75 @@ function ProductionPage() {
       batchId: "",
       date: new Date().toISOString().split('T')[0],
       numberOfDeadBirds: 0,
+      entryMode: 'trays',
+      numberOfTrays: 0,
+      extraEggs: 0,
       numberOfEggsCollected: 0,
       notes: "",
     }
   });
 
+  // Query for batches
+  const { data: batches = [] } = useQuery<Batch[]>({
+    queryKey: ['batches'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('http://92.112.180.180:3000/api/v1/batch', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch batch data');
+        return res.json();
+      } catch (err) {
+        console.error('Failed to fetch batch data:', err);
+        throw err;
+      }
+    },
+  });
+
+  // Watch form values for real-time calculations
+  const watchedTrays = form.watch('numberOfTrays') || 0;
+  const watchedExtraEggs = form.watch('extraEggs') || 0;
+  const watchedEggs = form.watch('numberOfEggsCollected') || 0;
+  const watchedBatchId = form.watch('batchId');
+  const watchedEntryMode = form.watch('entryMode');
+
+  // Calculate total eggs from trays
+  const calculatedEggsFromTrays = (watchedTrays * EGGS_PER_TRAY) + watchedExtraEggs;
+
+  // Calculate trays from total eggs
+  const calculatedTraysFromEggs = {
+    trays: Math.floor(watchedEggs / EGGS_PER_TRAY),
+    extraEggs: watchedEggs % EGGS_PER_TRAY
+  };
+
+  // Get current batch for validation
+  const currentBatch = batches.find(batch => batch.id === watchedBatchId);
+  const currentBirdCount = currentBatch?.currentCount || 0;
+  const totalEggs = watchedEntryMode === 'trays' ? calculatedEggsFromTrays : watchedEggs;
+  const isEggCountValid = totalEggs <= currentBirdCount;
+  const productionRate = currentBirdCount > 0 ? ((totalEggs / currentBirdCount) * 100) : 0;
+
   // Set form values when editing a production record
   useEffect(() => {
     if (editMode && selectedProduction) {
+      const hasTraysData = selectedProduction.numberOfTrays !== undefined;
+      const mode = hasTraysData ? 'trays' : 'eggs';
+      
       form.reset({
         batchId: selectedProduction.batchId,
         date: new Date(selectedProduction.date).toISOString().split('T')[0],
         numberOfDeadBirds: selectedProduction.numberOfDeadBirds,
+        entryMode: mode,
+        numberOfTrays: selectedProduction.numberOfTrays || 0,
+        extraEggs: selectedProduction.extraEggs || 0,
         numberOfEggsCollected: selectedProduction.numberOfEggsCollected,
         notes: selectedProduction.notes || "",
       });
+      setEntryMode(mode);
     }
   }, [editMode, selectedProduction, form]);
 
@@ -151,15 +219,24 @@ function ProductionPage() {
     if (!open) {
       setEditMode(false);
       setSelectedProduction(null);
+      setEntryMode('trays');
       form.reset({
         batchId: "",
         date: new Date().toISOString().split('T')[0],
         numberOfDeadBirds: 0,
+        entryMode: 'trays',
+        numberOfTrays: 0,
+        extraEggs: 0,
         numberOfEggsCollected: 0,
         notes: "",
       });
     }
   }, [open, form]);
+
+  // Update entry mode when form value changes
+  useEffect(() => {
+    setEntryMode(watchedEntryMode);
+  }, [watchedEntryMode]);
 
   // Clear success/error messages after 3 seconds
   useEffect(() => {
@@ -177,11 +254,26 @@ function ProductionPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
+      // Prepare payload based on entry mode
+      const payload: any = {
+        batchId: data.batchId,
+        date: data.date,
+        numberOfDeadBirds: data.numberOfDeadBirds,
+        notes: data.notes,
+      };
+
+      if (data.entryMode === 'trays') {
+        payload.numberOfTrays = data.numberOfTrays || 0;
+        payload.extraEggs = data.extraEggs || 0;
+      } else {
+        payload.numberOfEggsCollected = data.numberOfEggsCollected || 0;
+      }
+
       if (editMode && selectedProduction) {
         // Update existing production record
-        const res = await axios.patch(
+        await axios.patch(
           `http://92.112.180.180:3000/api/v1/production/${selectedProduction.id}`,
-          data,
+          payload,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -193,9 +285,9 @@ function ProductionPage() {
         setSuccessMessage('Production record updated successfully');
       } else {
         // Create new production record
-        const res = await axios.post(
+        await axios.post(
           'http://92.112.180.180:3000/api/v1/production',
-          data,
+          payload,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -254,33 +346,12 @@ function ProductionPage() {
     }
   };
 
-  // Query for batches
-  const { data: batches = [] } = useQuery<Batch[]>({
-    queryKey: ['batches'],
-    queryFn: async () => {
-      try {
-        const res = await fetch('http://92.112.180.180:3000/api/v1/batch', {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch batch data');
-        return res.json();
-      } catch (err) {
-        console.error('Failed to fetch batch data:', err);
-        throw err;
-      }
-    },
-  });
-
   // Query for production data
   const {
     data: production = [],
     isLoading: isProductionLoading,
     refetch
-  } = useQuery<Production[]>({
+  } = useQuery<EnhancedProduction[]>({
     queryKey: ['production'],
     queryFn: async () => {
       const res = await fetch('http://92.112.180.180:3000/api/v1/production', {
@@ -302,6 +373,7 @@ function ProductionPage() {
       ...prod,
       batchName: batch?.name || 'Unknown Batch',
       batchType: batch?.chickenType || 'Unknown Type',
+      batchCurrentCount: batch?.currentCount || 0,
     };
   });
 
@@ -337,9 +409,12 @@ function ProductionPage() {
     if (filteredProduction.length === 0) {
       return {
         totalEggs: 0,
+        totalTrays: 0,
         avgEggsPerDay: 0,
+        avgTraysPerDay: 0,
         totalMortality: 0,
         mortalityRate: 0,
+        avgProductionRate: 0,
         trends: {
           eggs: 'stable',
           mortality: 'stable'
@@ -347,7 +422,8 @@ function ProductionPage() {
       };
     }
 
-    const totalEggs = filteredProduction.reduce((sum, record) => sum + record.numberOfEggsCollected, 0);
+    const totalEggs = filteredProduction.reduce((sum, record) => sum + (record.numberOfEggsCollected || 0), 0);
+    const totalTrays = filteredProduction.reduce((sum, record) => sum + (record.numberOfTrays || 0), 0);
     const totalMortality = filteredProduction.reduce((sum, record) => sum + record.numberOfDeadBirds, 0);
 
     // Calculate days in range
@@ -357,10 +433,17 @@ function ProductionPage() {
 
     // Calculate averages
     const avgEggsPerDay = Math.round(totalEggs / daysDiff);
+    const avgTraysPerDay = Math.round((totalTrays * 10) / daysDiff) / 10;
 
     // Calculate total birds for mortality rate
-    const totalBirds = batches.reduce((sum, batch) => sum + batch.quantity, 0);
+    const totalBirds = batches.reduce((sum, batch) => sum + (batch.currentCount || 0), 0);
     const mortalityRate = totalBirds > 0 ? ((totalMortality / totalBirds) * 100) : 0;
+
+    // Calculate average production rate
+    const validRates = filteredProduction.filter(p => p.productionRate !== undefined && p.productionRate > 0);
+    const avgProductionRate = validRates.length > 0 
+      ? validRates.reduce((sum, p) => sum + (p.productionRate || 0), 0) / validRates.length 
+      : 0;
 
     // Calculate trends by comparing first half to second half of the period
     const sortedByDate = [...filteredProduction].sort((a, b) =>
@@ -371,8 +454,8 @@ function ProductionPage() {
     const firstHalf = sortedByDate.slice(0, midpoint);
     const secondHalf = sortedByDate.slice(midpoint);
 
-    const firstHalfEggs = firstHalf.reduce((sum, record) => sum + record.numberOfEggsCollected, 0);
-    const secondHalfEggs = secondHalf.reduce((sum, record) => sum + record.numberOfEggsCollected, 0);
+    const firstHalfEggs = firstHalf.reduce((sum, record) => sum + (record.numberOfEggsCollected || 0), 0);
+    const secondHalfEggs = secondHalf.reduce((sum, record) => sum + (record.numberOfEggsCollected || 0), 0);
 
     const firstHalfMortality = firstHalf.reduce((sum, record) => sum + record.numberOfDeadBirds, 0);
     const secondHalfMortality = secondHalf.reduce((sum, record) => sum + record.numberOfDeadBirds, 0);
@@ -387,9 +470,12 @@ function ProductionPage() {
 
     return {
       totalEggs,
+      totalTrays,
       avgEggsPerDay,
+      avgTraysPerDay,
       totalMortality,
       mortalityRate,
+      avgProductionRate,
       trends: {
         eggs: eggsTrend,
         mortality: mortalityTrend
@@ -408,13 +494,15 @@ function ProductionPage() {
         acc[date] = {
           date,
           eggsCollected: 0,
+          traysCollected: 0,
           deadBirds: 0
         };
       }
-      acc[date].eggsCollected += record.numberOfEggsCollected;
+      acc[date].eggsCollected += record.numberOfEggsCollected || 0;
+      acc[date].traysCollected += record.numberOfTrays || 0;
       acc[date].deadBirds += record.numberOfDeadBirds;
       return acc;
-    }, {} as Record<string, { date: string; eggsCollected: number; deadBirds: number }>);
+    }, {} as Record<string, { date: string; eggsCollected: number; traysCollected: number; deadBirds: number }>);
 
     // Convert to array and sort by date
     return Object.values(groupedByDate).sort((a, b) => {
@@ -430,20 +518,20 @@ function ProductionPage() {
   const enhancedColumns = [
     {
       id: "select",
-      header: ({ table }) => (
+      header: ({ table }: any) => (
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          onCheckedChange={(value: any) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <Checkbox
           checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          onCheckedChange={(value: any) => row.toggleSelected(!!value)}
           aria-label="Select row"
         />
       ),
@@ -452,7 +540,7 @@ function ProductionPage() {
     },
     {
       accessorKey: "batchName",
-      header: ({ column }) => (
+      header: ({ column }: any) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -461,7 +549,7 @@ function ProductionPage() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => {
+      cell: ({ row }: any) => {
         const record = row.original as EnhancedProduction;
         return (
           <div className="flex items-center gap-2">
@@ -477,7 +565,7 @@ function ProductionPage() {
     },
     {
       accessorKey: "date",
-      header: ({ column }) => (
+      header: ({ column }: any) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -486,7 +574,7 @@ function ProductionPage() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => {
+      cell: ({ row }: any) => {
         const rawDate = row.getValue("date") as string;
         const formattedDate = new Date(rawDate).toLocaleDateString("en-US", {
           year: "numeric",
@@ -497,24 +585,49 @@ function ProductionPage() {
       },
     },
     {
-      accessorKey: "numberOfEggsCollected",
-      header: ({ column }) => (
+      id: "production",
+      header: ({ column }: any) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Eggs Collected
+          Production
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => {
-        const value = row.getValue("numberOfEggsCollected") as number;
-        return <span className="font-medium">{value.toLocaleString()}</span>;
+      cell: ({ row }: any) => {
+        const record = row.original as EnhancedProduction;
+        const eggsCollected = record.numberOfEggsCollected || 0;
+        const traysCollected = record.numberOfTrays || 0;
+        const extraEggs = record.extraEggs || 0;
+        const productionRate = record.productionRate || 0;
+
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-blue-600" />
+              <span className="font-medium">{traysCollected} trays</span>
+              {extraEggs > 0 && (
+                <span className="text-sm text-gray-500">+ {extraEggs}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Egg className="h-4 w-4 text-green-600" />
+              <span className="text-sm">{eggsCollected.toLocaleString()} eggs</span>
+            </div>
+            {productionRate > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {productionRate.toFixed(1)}% rate
+              </Badge>
+            )}
+          </div>
+        );
       },
+      accessorFn: (row: any) => row.numberOfEggsCollected,
     },
     {
       accessorKey: "numberOfDeadBirds",
-      header: ({ column }) => (
+      header: ({ column }: any) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -523,7 +636,7 @@ function ProductionPage() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => {
+      cell: ({ row }: any) => {
         const value = row.getValue("numberOfDeadBirds") as number;
         return <span className="font-medium">{value}</span>;
       },
@@ -531,7 +644,7 @@ function ProductionPage() {
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row }) => {
+      cell: ({ row }: any) => {
         const record = row.original as EnhancedProduction;
 
         return (
@@ -593,7 +706,10 @@ function ProductionPage() {
           month: "short",
           day: "numeric",
         }),
-        "Eggs Collected": item.numberOfEggsCollected,
+        "Trays Collected": item.numberOfTrays || 0,
+        "Extra Eggs": item.extraEggs || 0,
+        "Total Eggs": item.numberOfEggsCollected,
+        "Production Rate (%)": item.productionRate?.toFixed(1) || "0.0",
         "Dead Birds": item.numberOfDeadBirds,
       }));
 
@@ -635,7 +751,7 @@ function ProductionPage() {
                 Add Production Record
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>
                   {editMode ? "Edit Production Record" : "Add Production Record"}
@@ -664,7 +780,7 @@ function ProductionPage() {
                                 .filter(batch => !batch.isArchived)
                                 .map((batch) => (
                                   <SelectItem key={batch.id} value={batch.id}>
-                                    {batch.name} ({batch.chickenType})
+                                    {batch.name} ({batch.chickenType}) - {batch.currentCount} birds
                                   </SelectItem>
                                 ))}
                             </SelectContent>
@@ -689,45 +805,202 @@ function ProductionPage() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="numberOfEggsCollected"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Eggs Collected</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Enter count"
-                              {...field}
-                              min={0}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Entry Mode Selection */}
+                  <FormField
+                    control={form.control}
+                    name="entryMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Entry Mode</FormLabel>
+                        <FormControl>
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                id="trays"
+                                value="trays"
+                                checked={field.value === 'trays'}
+                                onChange={() => field.onChange('trays')}
+                                className="h-4 w-4 text-green-600"
+                              />
+                              <label htmlFor="trays" className="text-sm font-medium">
+                                Trays + Extra Eggs
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                id="eggs"
+                                value="eggs"
+                                checked={field.value === 'eggs'}
+                                onChange={() => field.onChange('eggs')}
+                                className="h-4 w-4 text-green-600"
+                              />
+                              <label htmlFor="eggs" className="text-sm font-medium">
+                                Total Eggs
+                              </label>
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Choose how you want to enter egg production data
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="numberOfDeadBirds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Dead Birds</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Enter count"
-                              {...field}
-                              min={0}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  {/* Current batch info display */}
+                  {currentBatch && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-800">
+                          {currentBatch.name} - {currentBatch.currentCount} birds
+                        </span>
+                      </div>
+                      <div className="text-xs text-blue-600">
+                        Maximum possible eggs: {currentBatch.currentCount}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tray-based entry */}
+                  {entryMode === 'trays' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="numberOfTrays"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Number of Trays</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  {...field}
+                                  min={0}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Each tray holds {EGGS_PER_TRAY} eggs
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="extraEggs"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Extra Eggs</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  {...field}
+                                  min={0}
+                                  max={29}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Loose eggs (0-29)
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Calculation display for tray mode */}
+                      <div className="bg-gray-50 border rounded-md p-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Calculated Total:</span>
+                          <span className="font-medium">
+                            {calculatedEggsFromTrays} eggs
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
+                          <span>Production Rate:</span>
+                          <span>{productionRate.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Direct egg entry */}
+                  {entryMode === 'eggs' && (
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="numberOfEggsCollected"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Eggs Collected</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="0"
+                                {...field}
+                                min={0}
+                                max={currentBirdCount}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Total number of eggs collected
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Calculation display for egg mode */}
+                      <div className="bg-gray-50 border rounded-md p-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Equivalent Trays:</span>
+                          <span className="font-medium">
+                            {calculatedTraysFromEggs.trays} trays + {calculatedTraysFromEggs.extraEggs} eggs
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
+                          <span>Production Rate:</span>
+                          <span>{productionRate.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Validation warning */}
+                  {!isEggCountValid && totalEggs > 0 && (
+                    <Alert className="border-red-200 bg-red-50">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-red-800">
+                        Egg count ({totalEggs}) cannot exceed current bird count ({currentBirdCount})
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <FormField
+                    control={form.control}
+                    name="numberOfDeadBirds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dead Birds</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            {...field}
+                            min={0}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
@@ -760,7 +1033,7 @@ function ProductionPage() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={loading}
+                      disabled={loading || !isEggCountValid}
                       className="bg-green-700 hover:bg-green-800"
                     >
                       {loading ? (
@@ -796,7 +1069,7 @@ function ProductionPage() {
 
         {/* Production Overview Cards */}
         {user?.role !== "Worker" && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -825,6 +1098,44 @@ function ProductionPage() {
                       <span>Stable production</span>
                     </div>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Trays Collected
+                </CardTitle>
+                <Package className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalTrays.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.avgTraysPerDay} trays per day on average
+                </p>
+                <div className="text-xs text-blue-600 mt-2">
+                  {EGGS_PER_TRAY} eggs per tray
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Average Production Rate
+                </CardTitle>
+                <TrendingUp className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.avgProductionRate.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Eggs per bird ratio
+                </p>
+                <div className="mt-3">
+                  <Badge variant={stats.avgProductionRate > 80 ? "default" : stats.avgProductionRate > 60 ? "secondary" : "destructive"}>
+                    {stats.avgProductionRate > 80 ? "Excellent" : stats.avgProductionRate > 60 ? "Good" : "Needs Attention"}
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
@@ -864,11 +1175,11 @@ function ProductionPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Time Period
+                  Filter & Export
                 </CardTitle>
-                <Calendar className="h-4 w-4 text-blue-600" />
+                <Filter className="h-4 w-4 text-purple-600" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <Select
                   value={dateRange}
                   onValueChange={(value) => setDateRange(value as DateRange)}
@@ -883,23 +1194,7 @@ function ProductionPage() {
                     <SelectItem value="all">All time</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-3">
-                  Showing {filteredProduction.length} records from{' '}
-                  {dateRange === 'all'
-                    ? 'all time'
-                    : `the last ${dateRange.replace('days', ' days')}`}
-                </p>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Filter By Batch
-                </CardTitle>
-                <Filter className="h-4 w-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
                 <Select
                   value={filter}
                   onValueChange={setFilter}
@@ -918,11 +1213,22 @@ function ProductionPage() {
                       ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-3">
-                  {filter === 'all'
-                    ? 'Showing all batches'
-                    : `Filtered to ${batches.find(b => b.id === filter)?.name || 'selected batch'}`}
-                </p>
+
+                <Button
+                  onClick={handleExport}
+                  disabled={isExporting}
+                  size="sm"
+                  className="w-full"
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    "Export Data"
+                  )}
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -984,6 +1290,48 @@ function ProductionPage() {
               </CardContent>
             </Card>
 
+            {/* Tray Production Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tray Collection Trend</CardTitle>
+                <CardDescription>
+                  Daily tray collection over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart
+                      data={chartData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        tickMargin={10}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 12 }}
+                      />
+                      <RechartsTooltip
+                        formatter={(value: any) => [`${value}`, "Trays"]}
+                      />
+                      <Bar
+                        dataKey="traysCollected"
+                        fill="#3b82f6"
+                        radius={[4, 4, 0, 0]}
+                        name="Trays Collected"
+                      />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No data available for the selected period</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
             {/* Mortality Chart */}
             <Card>
               <CardHeader>
@@ -1034,21 +1382,17 @@ function ProductionPage() {
           <CardHeader>
             <div className="flex justify-between">
               <CardTitle>Production Records</CardTitle>
-              {user?.role !== "Worker" && (
-                <Button onClick={handleExport} disabled={isExporting}>
-                  {isExporting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Exporting...
-                    </>
-                  ) : (
-                    "Export"
-                  )}
-                </Button>
-              )}
+              <div className="text-sm text-gray-500">
+                {filteredProduction.length} records found
+              </div>
             </div>
             <CardDescription>
-              {filteredProduction.length} records found
+              Showing production data {filter === 'all' 
+                ? 'from all batches' 
+                : `for ${batches.find(b => b.id === filter)?.name || 'selected batch'}`} 
+              {dateRange === 'all' 
+                ? '' 
+                : ` over the last ${dateRange.replace('days', ' days')}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1102,7 +1446,11 @@ function ProductionPage() {
                     Date: {selectedProduction ? new Date(selectedProduction.date).toLocaleDateString() : ''}
                   </p>
                   <p className="text-xs text-gray-600">
-                    Eggs: {selectedProduction?.numberOfEggsCollected || 0} | Mortality: {selectedProduction?.numberOfDeadBirds || 0}
+                    {selectedProduction?.numberOfTrays ? (
+                      <>Trays: {selectedProduction.numberOfTrays} + {selectedProduction.extraEggs || 0} extra</>
+                    ) : (
+                      <>Eggs: {selectedProduction?.numberOfEggsCollected || 0}</>
+                    )} | Mortality: {selectedProduction?.numberOfDeadBirds || 0}
                   </p>
                 </div>
               </div>
@@ -1141,6 +1489,14 @@ function ProductionPage() {
             <ul className="space-y-2 text-blue-700 text-sm">
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <span>Use tray-based entry for more accurate and faster data collection (1 tray = {EGGS_PER_TRAY} eggs)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <span>Monitor production rates closely - a healthy flock should maintain 70-90% production rate</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <span>Record production data daily for accurate tracking and better analysis</span>
               </li>
               <li className="flex items-start gap-2">
@@ -1153,15 +1509,7 @@ function ProductionPage() {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span>Ensure that all farm workers are adequately trained </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <span>Regular data entry helps identify trends and optimize production</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span>Set up alerts and notifications for critical production metrics</span>
               </li>
             </ul>
           </CardContent>
