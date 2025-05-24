@@ -52,3 +52,5 @@ connectToMongoDB()
       error
     );
   });
+
+export default app;

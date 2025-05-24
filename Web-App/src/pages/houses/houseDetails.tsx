@@ -313,7 +313,7 @@ const HouseDetailPage = () => {
   } = useQuery<SensorData[]>({
     queryKey: ['sensorData', id],
     queryFn: async () => {
-      const res = await fetch(`http://92.112.180.180:3000/api/v1/monitoring/house/${id}`, {
+      const res = await fetch(`http://92.112.180.180:3000/api/v1/monitoring`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
