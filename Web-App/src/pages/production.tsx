@@ -53,7 +53,6 @@ import {
   Skull,
   X,
   Package,
-  TrendingUp,
   AlertTriangle
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -64,11 +63,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+// Replace your existing recharts import (around line 30-40) with this:
 import {
   AreaChart,
   Area,
   BarChart as RechartsBarChart,
   Bar,
+  LineChart,  // Add this
+  Line,       
   XAxis,
   YAxis,
   CartesianGrid,
@@ -77,6 +79,7 @@ import {
 } from 'recharts';
 import { format, subDays, differenceInDays } from 'date-fns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Feather, TrendingDown, TrendingUp } from 'lucide-react';
 
 // Enhanced schema for the production form with tray-based entry
 const productionSchema = z.object({
@@ -403,6 +406,72 @@ function ProductionPage() {
 
     return dateInRange && batchMatches;
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const prepareBirdCountChartData = () => {
+  // Group production records by date to calculate cumulative bird count changes
+  const groupedByDate = filteredProduction.reduce((acc, record) => {
+    const date = format(new Date(record.date), 'MMM dd');
+    if (!acc[date]) {
+      acc[date] = {
+        date,
+        totalDeaths: 0,
+        recordCount: 0
+      };
+    }
+    acc[date].totalDeaths += record.numberOfDeadBirds;
+    acc[date].recordCount += 1;
+    return acc;
+  }, {} as Record<string, { date: string; totalDeaths: number; recordCount: number }>);
+
+  // Calculate cumulative bird count over time
+  const chartDataArray = Object.values(groupedByDate).sort((a, b) => {
+    const dateA = new Date(a.date + ' 2024'); // Add year for proper sorting
+    const dateB = new Date(b.date + ' 2024');
+    return dateA.getTime() - dateB.getTime();
+  });
+
+  // Get initial bird count from selected batches
+  let initialBirdCount = 0;
+  if (filter === 'all') {
+    initialBirdCount = batches
+      .filter(batch => !batch.isArchived)
+      .reduce((sum, batch) => sum + (batch.originalCount || 0), 0);
+  } else {
+    const selectedBatch = batches.find(batch => batch.id === filter);
+    initialBirdCount = selectedBatch?.originalCount || 0;
+  }
+
+  // Calculate running bird count
+  let cumulativeDeaths = 0;
+  return chartDataArray.map(item => {
+    cumulativeDeaths += item.totalDeaths;
+    const currentBirdCount = Math.max(0, initialBirdCount - cumulativeDeaths);
+    
+    return {
+      date: item.date,
+      birdCount: currentBirdCount,
+      dailyDeaths: item.totalDeaths,
+      cumulativeDeaths,
+      mortalityRate: initialBirdCount > 0 ? ((cumulativeDeaths / initialBirdCount) * 100) : 0
+    };
+  });
+};
+
+// Calculate bird count trend (add this after the existing stats calculation)
+const birdCountData = prepareBirdCountChartData();
+const birdCountTrend = (() => {
+  if (birdCountData.length < 2) return 'stable';
+  
+  const firstHalf = birdCountData.slice(0, Math.floor(birdCountData.length / 2));
+  const secondHalf = birdCountData.slice(Math.floor(birdCountData.length / 2));
+  
+  const firstAvg = firstHalf.reduce((sum, item) => sum + item.birdCount, 0) / firstHalf.length;
+  const secondAvg = secondHalf.reduce((sum, item) => sum + item.birdCount, 0) / secondHalf.length;
+  
+  if (secondAvg < firstAvg * 0.95) return 'decreasing';
+  if (secondAvg > firstAvg * 1.05) return 'increasing';
+  return 'stable';
+})();
 
   // Calculate production statistics
   const calcProductionStats = () => {
@@ -1366,6 +1435,92 @@ function ProductionPage() {
                         name="Dead Birds"
                       />
                     </RechartsBarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No data available for the selected period</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* Bird Count Trend Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Feather className="h-4 w-4 text-blue-600" />
+                  Bird Population Trend
+                  <div className="ml-auto flex items-center gap-1 text-sm">
+                    {birdCountTrend === 'increasing' ? (
+                      <div className="flex items-center text-green-600">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        <span>Population Growing</span>
+                      </div>
+                    ) : birdCountTrend === 'decreasing' ? (
+                      <div className="flex items-center text-red-600">
+                        <TrendingDown className="h-4 w-4 mr-1" />
+                        <span>Population Declining</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-blue-600">
+                        <span>Population Stable</span>
+                      </div>
+                    )}
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  Track changes in bird population due to mortality over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {birdCountData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={birdCountData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="birdCountGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        tickMargin={10}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(value) => value.toLocaleString()}
+                      />
+                      <RechartsTooltip
+                        formatter={(value: any, name: string) => [
+                          name === 'birdCount' ? value.toLocaleString() : value,
+                          name === 'birdCount' ? 'Bird Count' : 
+                          name === 'dailyDeaths' ? 'Daily Deaths' : 
+                          name === 'mortalityRate' ? 'Mortality Rate (%)' : name
+                        ]}
+                        labelFormatter={(label) => `Date: ${label}`}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="birdCount"
+                        stroke="#3b82f6"
+                        strokeWidth={3}
+                        fill="url(#birdCountGradient)"
+                        activeDot={{ r: 8 }}
+                        name="Bird Count"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="dailyDeaths"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        name="Daily Deaths"
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-full">
