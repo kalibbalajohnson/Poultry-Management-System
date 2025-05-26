@@ -70,7 +70,7 @@ import {
   BarChart as RechartsBarChart,
   Bar,
   LineChart,  // Add this
-  Line,       
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -202,7 +202,7 @@ function ProductionPage() {
     if (editMode && selectedProduction) {
       const hasTraysData = selectedProduction.numberOfTrays !== undefined;
       const mode = hasTraysData ? 'trays' : 'eggs';
-      
+
       form.reset({
         batchId: selectedProduction.batchId,
         date: new Date(selectedProduction.date).toISOString().split('T')[0],
@@ -408,70 +408,70 @@ function ProductionPage() {
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const prepareBirdCountChartData = () => {
-  // Group production records by date to calculate cumulative bird count changes
-  const groupedByDate = filteredProduction.reduce((acc, record) => {
-    const date = format(new Date(record.date), 'MMM dd');
-    if (!acc[date]) {
-      acc[date] = {
-        date,
-        totalDeaths: 0,
-        recordCount: 0
-      };
+    // Group production records by date to calculate cumulative bird count changes
+    const groupedByDate = filteredProduction.reduce((acc, record) => {
+      const date = format(new Date(record.date), 'MMM dd');
+      if (!acc[date]) {
+        acc[date] = {
+          date,
+          totalDeaths: 0,
+          recordCount: 0
+        };
+      }
+      acc[date].totalDeaths += record.numberOfDeadBirds;
+      acc[date].recordCount += 1;
+      return acc;
+    }, {} as Record<string, { date: string; totalDeaths: number; recordCount: number }>);
+
+    // Calculate cumulative bird count over time
+    const chartDataArray = Object.values(groupedByDate).sort((a, b) => {
+      const dateA = new Date(a.date + ' 2024'); // Add year for proper sorting
+      const dateB = new Date(b.date + ' 2024');
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    // Get initial bird count from selected batches
+    let initialBirdCount = 0;
+    if (filter === 'all') {
+      initialBirdCount = batches
+        .filter(batch => !batch.isArchived)
+        .reduce((sum, batch) => sum + (batch.originalCount || 0), 0);
+    } else {
+      const selectedBatch = batches.find(batch => batch.id === filter);
+      initialBirdCount = selectedBatch?.originalCount || 0;
     }
-    acc[date].totalDeaths += record.numberOfDeadBirds;
-    acc[date].recordCount += 1;
-    return acc;
-  }, {} as Record<string, { date: string; totalDeaths: number; recordCount: number }>);
 
-  // Calculate cumulative bird count over time
-  const chartDataArray = Object.values(groupedByDate).sort((a, b) => {
-    const dateA = new Date(a.date + ' 2024'); // Add year for proper sorting
-    const dateB = new Date(b.date + ' 2024');
-    return dateA.getTime() - dateB.getTime();
-  });
+    // Calculate running bird count
+    let cumulativeDeaths = 0;
+    return chartDataArray.map(item => {
+      cumulativeDeaths += item.totalDeaths;
+      const currentBirdCount = Math.max(0, initialBirdCount - cumulativeDeaths);
 
-  // Get initial bird count from selected batches
-  let initialBirdCount = 0;
-  if (filter === 'all') {
-    initialBirdCount = batches
-      .filter(batch => !batch.isArchived)
-      .reduce((sum, batch) => sum + (batch.originalCount || 0), 0);
-  } else {
-    const selectedBatch = batches.find(batch => batch.id === filter);
-    initialBirdCount = selectedBatch?.originalCount || 0;
-  }
+      return {
+        date: item.date,
+        birdCount: currentBirdCount,
+        dailyDeaths: item.totalDeaths,
+        cumulativeDeaths,
+        mortalityRate: initialBirdCount > 0 ? ((cumulativeDeaths / initialBirdCount) * 100) : 0
+      };
+    });
+  };
 
-  // Calculate running bird count
-  let cumulativeDeaths = 0;
-  return chartDataArray.map(item => {
-    cumulativeDeaths += item.totalDeaths;
-    const currentBirdCount = Math.max(0, initialBirdCount - cumulativeDeaths);
-    
-    return {
-      date: item.date,
-      birdCount: currentBirdCount,
-      dailyDeaths: item.totalDeaths,
-      cumulativeDeaths,
-      mortalityRate: initialBirdCount > 0 ? ((cumulativeDeaths / initialBirdCount) * 100) : 0
-    };
-  });
-};
+  // Calculate bird count trend (add this after the existing stats calculation)
+  const birdCountData = prepareBirdCountChartData();
+  const birdCountTrend = (() => {
+    if (birdCountData.length < 2) return 'stable';
 
-// Calculate bird count trend (add this after the existing stats calculation)
-const birdCountData = prepareBirdCountChartData();
-const birdCountTrend = (() => {
-  if (birdCountData.length < 2) return 'stable';
-  
-  const firstHalf = birdCountData.slice(0, Math.floor(birdCountData.length / 2));
-  const secondHalf = birdCountData.slice(Math.floor(birdCountData.length / 2));
-  
-  const firstAvg = firstHalf.reduce((sum, item) => sum + item.birdCount, 0) / firstHalf.length;
-  const secondAvg = secondHalf.reduce((sum, item) => sum + item.birdCount, 0) / secondHalf.length;
-  
-  if (secondAvg < firstAvg * 0.95) return 'decreasing';
-  if (secondAvg > firstAvg * 1.05) return 'increasing';
-  return 'stable';
-})();
+    const firstHalf = birdCountData.slice(0, Math.floor(birdCountData.length / 2));
+    const secondHalf = birdCountData.slice(Math.floor(birdCountData.length / 2));
+
+    const firstAvg = firstHalf.reduce((sum, item) => sum + item.birdCount, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum, item) => sum + item.birdCount, 0) / secondHalf.length;
+
+    if (secondAvg < firstAvg * 0.95) return 'decreasing';
+    if (secondAvg > firstAvg * 1.05) return 'increasing';
+    return 'stable';
+  })();
 
   // Calculate production statistics
   const calcProductionStats = () => {
@@ -510,8 +510,8 @@ const birdCountTrend = (() => {
 
     // Calculate average production rate
     const validRates = filteredProduction.filter(p => p.productionRate !== undefined && p.productionRate > 0);
-    const avgProductionRate = validRates.length > 0 
-      ? validRates.reduce((sum, p) => sum + (p.productionRate || 0), 0) / validRates.length 
+    const avgProductionRate = validRates.length > 0
+      ? validRates.reduce((sum, p) => sum + (p.productionRate || 0), 0) / validRates.length
       : 0;
 
     // Calculate trends by comparing first half to second half of the period
@@ -684,7 +684,7 @@ const birdCountTrend = (() => {
               <Egg className="h-4 w-4 text-green-600" />
               <span className="text-sm">{eggsCollected.toLocaleString()} eggs</span>
             </div>
-            {productionRate > 0 && (
+            {typeof productionRate === "number" && productionRate > 0 && (
               <Badge variant="outline" className="text-xs">
                 {productionRate.toFixed(1)}% rate
               </Badge>
@@ -994,7 +994,11 @@ const birdCountTrend = (() => {
                         </div>
                         <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
                           <span>Production Rate:</span>
-                          <span>{productionRate.toFixed(1)}%</span>
+                          <span>
+                            {typeof productionRate === "number"
+                              ? `${productionRate.toFixed(1)}%`
+                              : "N/A"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1036,7 +1040,11 @@ const birdCountTrend = (() => {
                         </div>
                         <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
                           <span>Production Rate:</span>
-                          <span>{productionRate.toFixed(1)}%</span>
+                          <span>
+                            {typeof productionRate === "number"
+                              ? `${productionRate.toFixed(1)}%`
+                              : "N/A"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1497,9 +1505,9 @@ const birdCountTrend = (() => {
                       <RechartsTooltip
                         formatter={(value: any, name: string) => [
                           name === 'birdCount' ? value.toLocaleString() : value,
-                          name === 'birdCount' ? 'Bird Count' : 
-                          name === 'dailyDeaths' ? 'Daily Deaths' : 
-                          name === 'mortalityRate' ? 'Mortality Rate (%)' : name
+                          name === 'birdCount' ? 'Bird Count' :
+                            name === 'dailyDeaths' ? 'Daily Deaths' :
+                              name === 'mortalityRate' ? 'Mortality Rate (%)' : name
                         ]}
                         labelFormatter={(label) => `Date: ${label}`}
                       />
@@ -1542,11 +1550,11 @@ const birdCountTrend = (() => {
               </div>
             </div>
             <CardDescription>
-              Showing production data {filter === 'all' 
-                ? 'from all batches' 
-                : `for ${batches.find(b => b.id === filter)?.name || 'selected batch'}`} 
-              {dateRange === 'all' 
-                ? '' 
+              Showing production data {filter === 'all'
+                ? 'from all batches'
+                : `for ${batches.find(b => b.id === filter)?.name || 'selected batch'}`}
+              {dateRange === 'all'
+                ? ''
                 : ` over the last ${dateRange.replace('days', ' days')}`}
             </CardDescription>
           </CardHeader>
