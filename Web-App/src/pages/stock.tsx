@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
 import { Stock, columns } from "@/components/dataTable/stockColumns";
@@ -57,7 +56,6 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Tooltip, 
@@ -1550,7 +1548,7 @@ function StockPage() {
                       header: "Status",
                       cell: ({ row }) => {
                         const item = row.original;
-                        const percentage = Math.min(Math.round((item.quantity / Math.max(item.threshold * 2, 1)) * 100), 100);
+                        const percentage = Math.min(Math.round((item.quantity / Math.max(item.threshold, 1)) * 100), 100);
                         let statusColor = "bg-green-500";
                         let statusText = "Good";
 
