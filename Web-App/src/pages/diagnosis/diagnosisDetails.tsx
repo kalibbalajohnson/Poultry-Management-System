@@ -89,7 +89,7 @@ const DiagnosisDetailPage = () => {
                             const rawDisease = diagnosis?.disease;
                             const name = rawDisease ? diseaseMap[rawDisease] || rawDisease : "No diagnosis";
 
-                            if (diagnosis?.confidence !== undefined && diagnosis.confidence < 80) {
+                            if (diagnosis?.confidence !== undefined && diagnosis.confidence < 0.88) {
                                 return (
                                     <>
                                         {name} <span className="text-gray-700">(Uncertain)</span>
@@ -119,7 +119,7 @@ const DiagnosisDetailPage = () => {
                                     Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence * 100)}%` : "Unknown"}
                                 </button> */}
                                 <button className="rounded bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
-                                    Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence)}%` : "Unknown"}
+                                    Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence * 100)}%` : "Unknown"}
                                 </button>
                             </div>
                         </div>

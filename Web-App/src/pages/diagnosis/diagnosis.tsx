@@ -240,7 +240,7 @@ function DiagnosisPage() {
 
                                                 const name = entry?.disease ? diseaseMap[entry.disease] || entry.disease : "Unknown";
 
-                                                if (entry?.confidence !== undefined && entry.confidence < 80) {
+                                                if (entry?.confidence !== undefined && entry.confidence < 0.88) {
                                                     return (
                                                         <>
                                                             {name} <span className="text-gray-700">(Uncertain)</span>
