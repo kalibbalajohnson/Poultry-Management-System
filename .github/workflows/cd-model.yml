@@ -1,10 +1,8 @@
 name: Model CD Pipeline
 
 on:
-  workflow_run:
-    workflows: ['Model CI Pipeline']
-    types:
-      - completed
+  push:
+    branches: ['main']
 
 jobs:
   build:
