@@ -89,9 +89,15 @@ const DiagnosisDetailPage = () => {
                             const rawDisease = diagnosis?.disease;
                             const name = rawDisease ? diseaseMap[rawDisease] || rawDisease : "No diagnosis";
 
-                            return diagnosis?.confidence !== undefined && diagnosis.confidence < 70
-                                ? `${name} (Uncertain)`
-                                : name;
+                            if (diagnosis?.confidence !== undefined && diagnosis.confidence < 70) {
+                                return (
+                                    <>
+                                        {name} <span className="text-gray-700">(Uncertain)</span>
+                                    </>
+                                );
+                            }
+
+                            return name;
                         })()}
                     </h2>
                 </div>

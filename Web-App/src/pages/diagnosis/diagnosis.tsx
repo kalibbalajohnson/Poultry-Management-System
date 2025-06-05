@@ -240,14 +240,20 @@ function DiagnosisPage() {
 
                                                 const name = entry?.disease ? diseaseMap[entry.disease] || entry.disease : "Unknown";
 
-                                                return entry?.confidence !== undefined && entry.confidence < 70
-                                                    ? `${name} (Uncertain)`
-                                                    : name;
+                                                if (entry?.confidence !== undefined && entry.confidence < 70) {
+                                                    return (
+                                                        <>
+                                                            {name} <span className="text-gray-700">(Uncertain)</span>
+                                                        </>
+                                                    );
+                                                } else {
+                                                    return name;
+                                                }
                                             })()}
                                         </p>
                                         <MoreVertical className="w-4 h-4 text-gray-600 cursor-pointer" />
                                     </div>
-                                    <p className="text-xs pl-1 mb-2 text-gray-600">
+                                    <p className="text-xs pl-1 mb-2 mt-1 text-gray-600">
                                         {entry?.createdAt
                                             ? `${new Date(entry.createdAt).toDateString()} ${new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`
                                             : "Date unknown"}
