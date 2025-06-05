@@ -38,7 +38,7 @@ interface Diagnosis {
     id: string;
     imageUrl: string;
     disease: string;
-    confidence: string;
+    confidence: number;
     notes: string;
     createdAt: string;
     updatedAt: string;
@@ -57,52 +57,9 @@ function DiagnosisPage() {
 
     const accessToken = localStorage.getItem('accessToken');
 
-    // const onSubmit = async (values: z.infer<typeof diagnosisSchema>) => {
-    //     setLoading(true);
-    //     const file = values.image[0];
-
-    //     if (!file) return;
-
-    //     try {
-    //         const fileRef = ref(storage, `PoultryPal-diagnosis/${file.name}`);
-    //         await uploadBytes(fileRef, file);
-    //         const imageUrl = await getDownloadURL(fileRef);
-
-    //         const formData = new FormData();
-    //         formData.append('file', file);
-
-    //         const predictionResponse = await axios.post('http://92.112.180.180:8000/predict', formData);
-    //         const predictionData = predictionResponse.data;
-
-    //         const disease = predictionData?.predicted_class ?? 'Unknown';
-    //         const confidence = predictionData?.confidence ?? 'Unknown';
-
-    //         await axios.post(
-    //             'http://92.112.180.180:3000/api/v1/diagnosis',
-    //             {
-    //                 imageUrl,
-    //                 disease,
-    //                 confidence,
-    //             },
-    //             {
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                     Authorization: `Bearer ${accessToken}`,
-    //                 },
-    //             }
-    //         );
-
-    //         form.reset();
-    //         setLoading(false);
-    //         setOpen(false);
-    //     } catch (err) {
-    //         console.error('Error submitting diagnosis:', err);
-    //     }
-    // };
-
     const onSubmit = async (values: z.infer<typeof diagnosisSchema>) => {
         setLoading(true);
-        const file = values.image?.[0];
+        const file = values.image[0];
 
         if (!file) return;
 
@@ -111,19 +68,14 @@ function DiagnosisPage() {
             await uploadBytes(fileRef, file);
             const imageUrl = await getDownloadURL(fileRef);
 
-            let disease = 'unknown';
+            const formData = new FormData();
+            formData.append('file', file);
 
-            if (file.name.includes('cocci')) {
-                disease = 'cocci';
-            } else if (file.name.includes('salmo')) {
-                disease = 'salmo';
-            } else if (file.name.includes('ncd')) {
-                disease = 'ncd';
-            } else {
-                disease = 'healthy';
-            }
+            const predictionResponse = await axios.post('http://92.112.180.180:8000/predict', formData);
+            const predictionData = predictionResponse.data;
 
-            const confidence = Math.floor(Math.random() * 20) + 81;
+            const disease = predictionData?.predicted_class ?? 'Unknown';
+            const confidence = predictionData?.confidence ?? 'Unknown';
 
             await axios.post(
                 'http://92.112.180.180:3000/api/v1/diagnosis',
@@ -145,9 +97,57 @@ function DiagnosisPage() {
             setOpen(false);
         } catch (err) {
             console.error('Error submitting diagnosis:', err);
-            setLoading(false);
         }
     };
+
+    // const onSubmit = async (values: z.infer<typeof diagnosisSchema>) => {
+    //     setLoading(true);
+    //     const file = values.image?.[0];
+
+    //     if (!file) return;
+
+    //     try {
+    //         const fileRef = ref(storage, `PoultryPal-diagnosis/${file.name}`);
+    //         await uploadBytes(fileRef, file);
+    //         const imageUrl = await getDownloadURL(fileRef);
+
+    //         let disease = 'unknown';
+
+    //         if (file.name.includes('cocci')) {
+    //             disease = 'cocci';
+    //         } else if (file.name.includes('salmo')) {
+    //             disease = 'salmo';
+    //         } else if (file.name.includes('ncd')) {
+    //             disease = 'ncd';
+    //         } else {
+    //             disease = 'healthy';
+    //         }
+
+    //         const confidence = Math.floor(Math.random() * 20) + 81;
+
+    //         await axios.post(
+    //             'http://92.112.180.180:3000/api/v1/diagnosis',
+    //             {
+    //                 imageUrl,
+    //                 disease,
+    //                 confidence,
+    //             },
+    //             {
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     Authorization: `Bearer ${accessToken}`,
+    //                 },
+    //             }
+    //         );
+
+    //         form.reset();
+    //         setLoading(false);
+    //         setOpen(false);
+    //     } catch (err) {
+    //         console.error('Error submitting diagnosis:', err);
+    //         setLoading(false);
+    //     }
+    // };
 
     const { data: diagnoses = [] } = useQuery<Diagnosis[]>({
         queryKey: ['diagnoses'],
@@ -229,7 +229,22 @@ function DiagnosisPage() {
                                         className="w-full h-28 object-cover rounded-md mb-3"
                                     />
                                     <div className="flex pl-1 justify-between">
-                                        <p className="text-lg font-semibold text-gray-800">{entry?.disease}</p>
+                                        <p className="text-lg font-semibold text-gray-800">
+                                            {(() => {
+                                                const diseaseMap: Record<string, string> = {
+                                                    salmo: "Salmonella",
+                                                    ncd: "New Castle Disease",
+                                                    cocci: "Coccidiosis",
+                                                    healthy: "Healthy",
+                                                };
+
+                                                const name = entry?.disease ? diseaseMap[entry.disease] || entry.disease : "Unknown";
+
+                                                return entry?.confidence !== undefined && entry.confidence < 70
+                                                    ? `${name} (Uncertain)`
+                                                    : name;
+                                            })()}
+                                        </p>
                                         <MoreVertical className="w-4 h-4 text-gray-600 cursor-pointer" />
                                     </div>
                                     <p className="text-xs pl-1 mb-2 text-gray-600">

@@ -77,7 +77,23 @@ const DiagnosisDetailPage = () => {
             <Navbar2 />
             <div className="bg-white px-8 py-5">
                 <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold text-gray-800">{diagnosis?.disease || "Unknown"}</h2>
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                        {(() => {
+                            const diseaseMap: Record<string, string> = {
+                                salmo: "Salmonella",
+                                ncd: "New Castle Disease",
+                                cocci: "Coccidiosis",
+                                healthy: "Healthy",
+                            };
+
+                            const rawDisease = diagnosis?.disease;
+                            const name = rawDisease ? diseaseMap[rawDisease] || rawDisease : "No diagnosis";
+
+                            return diagnosis?.confidence !== undefined && diagnosis.confidence < 70
+                                ? `${name} (Uncertain)`
+                                : name;
+                        })()}
+                    </h2>
                 </div>
                 <div className="w-full">
                     <div className="flex justify-between space-x-4 w-full">
