@@ -446,7 +446,7 @@ const DashboardPage = () => {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           {/* Environmental Monitoring */}
-          <Card className="col-span-4">
+          {/* <Card className="col-span-4">
             <CardHeader>
               <CardTitle>Environmental Monitoring</CardTitle>
               <CardDescription>
@@ -510,7 +510,6 @@ const DashboardPage = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Current Environmental Readings */}
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg">
                   <Thermometer className="h-7 w-7 text-red-500" />
@@ -543,7 +542,7 @@ const DashboardPage = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Activity Feed */}
           <Card className="col-span-3">
