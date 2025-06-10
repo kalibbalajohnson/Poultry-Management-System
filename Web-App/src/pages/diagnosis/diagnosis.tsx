@@ -47,6 +47,7 @@ interface Diagnosis {
 function DiagnosisPage() {
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const form = useForm({
         resolver: zodResolver(diagnosisSchema),
@@ -58,47 +59,57 @@ function DiagnosisPage() {
     const accessToken = localStorage.getItem('accessToken');
 
     const onSubmit = async (values: z.infer<typeof diagnosisSchema>) => {
-        setLoading(true);
-        const file = values.image[0];
+    setLoading(true);
+    setError(null);
+    const file = values.image[0];
 
-        if (!file) return;
+    if (!file) return;
 
-        try {
-            const fileRef = ref(storage, `PoultryPal-diagnosis/${file.name}`);
-            await uploadBytes(fileRef, file);
-            const imageUrl = await getDownloadURL(fileRef);
+    try {
+        const fileRef = ref(storage, `PoultryPal-diagnosis/${file.name}`);
+        await uploadBytes(fileRef, file);
+        const imageUrl = await getDownloadURL(fileRef);
 
-            const formData = new FormData();
-            formData.append('file', file);
+        const formData = new FormData();
+        formData.append('file', file);
 
-            const predictionResponse = await axios.post('http://92.112.180.180:8000/predict', formData);
-            const predictionData = predictionResponse.data;
+        const predictionResponse = await axios.post(' http://localhost:8000/predict', formData);
+        // const predictionResponse = await axios.post('http://92.112.180.180:8000/predict', formData);
+        const predictionData = predictionResponse.data;
 
-            const disease = predictionData?.predicted_class ?? 'Unknown';
-            const confidence = predictionData?.confidence ?? 'Unknown';
-
-            await axios.post(
-                'http://92.112.180.180:3000/api/v1/diagnosis',
-                {
-                    imageUrl,
-                    disease,
-                    confidence,
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
-            );
-
-            form.reset();
+        if (predictionData.status === 'invalid') {
             setLoading(false);
-            setOpen(false);
-        } catch (err) {
-            console.error('Error submitting diagnosis:', err);
+            setError('Please upload a clear photo of poultry droppings');
+            return; 
         }
-    };
+
+        const disease = predictionData.prediction?.predicted_class ?? 'Unknown';
+        const confidence = predictionData.prediction?.confidence ?? 'Unknown';
+
+        await axios.post(
+            'http://92.112.180.180:3000/api/v1/diagnosis',
+            {
+                imageUrl,
+                disease,
+                confidence,
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }
+        );
+
+        form.reset();
+        setLoading(false);
+        setOpen(false);
+    } catch (err) {
+        console.error('Error submitting diagnosis:', err);
+        setError('Failed to process diagnosis. Please try again.');
+        setLoading(false);
+    }
+};
 
     // const onSubmit = async (values: z.infer<typeof diagnosisSchema>) => {
     //     setLoading(true);
@@ -177,47 +188,63 @@ function DiagnosisPage() {
                 <div className="bg-white px-8 py-5">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-gray-800">Disease Diagnosis</h2>
-                        <Dialog open={open} onOpenChange={setOpen}>
-                            <DialogTrigger>
-                                <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
-                                    Add Diagnosis
-                                </button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Create Diagnosis</DialogTitle>
-                                    <DialogDescription>
-                                        Upload an image below to perform diagnosis.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <section className="p-2">
-                                    <Form {...form}>
-                                        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="image"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Upload Image</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                type="file"
-                                                                accept="image/*"
-                                                                onChange={(e) => field.onChange(e.target.files)}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <Button type="submit" className="w-full bg-green-700 hover:bg-green-800">
-                                                {loading ? 'Diagnosing...' : 'Diagnose'}
-                                            </Button>
-                                        </form>
-                                    </Form>
-                                </section>
-                            </DialogContent>
-                        </Dialog>
+                        <Dialog open={open} onOpenChange={(open) => {
+    setOpen(open);
+    if (!open) setError(null);
+}}>
+    <DialogTrigger>
+        <button className="rounded-full bg-green-700 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
+            Add Diagnosis
+        </button>
+    </DialogTrigger>
+    <DialogContent>
+        <DialogHeader>
+            <DialogTitle>Create Diagnosis</DialogTitle>
+            <DialogDescription>
+                Upload an image below to perform diagnosis.
+            </DialogDescription>
+        </DialogHeader>
+        <section className="p-2">
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4">
+                    {error && (
+                        <div className="rounded-md bg-red-50 p-4">
+                            <div className="flex">
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-red-800">Invalid Image</h3>
+                                    <div className="mt-2 text-sm text-red-700">
+                                        <p>{error}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <FormField
+                        control={form.control}
+                        name="image"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Upload Image</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => field.onChange(e.target.files)}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <Button type="submit" className="w-full bg-green-700 hover:bg-green-800">
+                        {loading ? 'Diagnosing...' : 'Diagnose'}
+                    </Button>
+                </form>
+            </Form>
+        </section>
+    </DialogContent>
+</Dialog>
                     </div>
                     <div className="container mx-auto mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
