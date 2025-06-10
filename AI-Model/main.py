@@ -16,12 +16,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = "models/cnn_model.h5"  # Ensure your model path is correct
+MODEL_PATH = "models/bigDatasetWithDinaNCD_10E.h5"  # Ensure your model path is correct
 model = load_model(MODEL_PATH)
 
-# Define your class names as per your model's output
+# Define your class names as per the notebook's label encoding
+# 0 -> Coccidiosis, 1 -> Healthy, 2 -> New Castle Disease, 3 -> Salmonella
 class_names = ["cocci", "healthy", "ncd", "salmo"]
-IMAGE_SIZE = (256, 256)  # Resize all images to 256x256
+IMAGE_SIZE = (180, 180)  # Updated to match training size from notebook
 
 def preprocess_image(image_file) -> np.ndarray:
     try:
@@ -30,9 +31,9 @@ def preprocess_image(image_file) -> np.ndarray:
         print(f"🔍 Received image - Size: {img.size}, Mode: {img.mode}")
         img.save("debug_latest_image.jpg")  # Save for debugging if needed
 
-        img = img.resize(IMAGE_SIZE)  # Resize image to 256x256
+        img = img.resize(IMAGE_SIZE)  # Resize image to 180x180 to match training
         img_array = image.img_to_array(img) / 255.0  # Normalize pixel values to [0, 1]
-        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension: (1, 256, 256, 3)
+        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension: (1, 180, 180, 3)
         return img_array
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image format: {str(e)}")
@@ -49,15 +50,10 @@ async def predict(file: UploadFile = File(...)):
         image_data = await file.read()  # Read image data
         img_array = preprocess_image(io.BytesIO(image_data))  # Preprocess image
 
-        print(f"Input image shape before padding: {img_array.shape}")
+        print(f"Input image shape: {img_array.shape}")
 
-        # Pad image to match batch size of 32 if needed
-        batch_size = model.input_shape[0] or 32  # If model expects a batch size, use it (otherwise use 32)
-        padded_input = np.repeat(img_array, batch_size, axis=0)  # Shape: (32, 256, 256, 3)
-
-        print(f"Padded input shape: {padded_input.shape}")
-
-        predictions = model.predict(padded_input)  # Make prediction
+        # Make prediction directly without padding
+        predictions = model.predict(img_array)  # Shape: (1, 4)
         predicted_class_index = np.argmax(predictions[0])  # Get the predicted class index
         predicted_class = class_names[predicted_class_index]  # Get the class name
         confidence = float(predictions[0][predicted_class_index])  # Get the confidence score
