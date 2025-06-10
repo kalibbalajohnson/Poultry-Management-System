@@ -75,7 +75,7 @@ function DiagnosisPage() {
             const formData = new FormData();
             formData.append('file', file);
 
-            const predictionResponse = await axios.post('http://92.112.180.180:8000/predict', formData);
+            const predictionResponse = await axios.post('http://localhost:8000/predict/', formData);
             const predictionData = predictionResponse.data;
 
             if (predictionData.status === 'invalid') {
