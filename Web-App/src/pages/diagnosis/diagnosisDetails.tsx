@@ -77,7 +77,29 @@ const DiagnosisDetailPage = () => {
             <Navbar2 />
             <div className="bg-white px-8 py-5">
                 <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold text-gray-800">{diagnosis?.disease || "Unknown"}</h2>
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                        {(() => {
+                            const diseaseMap: Record<string, string> = {
+                                salmo: "Salmonella",
+                                ncd: "New Castle Disease",
+                                cocci: "Coccidiosis",
+                                healthy: "Healthy",
+                            };
+
+                            const rawDisease = diagnosis?.disease;
+                            const name = rawDisease ? diseaseMap[rawDisease] || rawDisease : "No diagnosis";
+
+                            if (diagnosis?.confidence !== undefined && diagnosis.confidence < 0.88) {
+                                return (
+                                    <>
+                                        {name} <span className="text-gray-700">(Uncertain)</span>
+                                    </>
+                                );
+                            }
+
+                            return name;
+                        })()}
+                    </h2>
                 </div>
                 <div className="w-full">
                     <div className="flex justify-between space-x-4 w-full">
@@ -97,7 +119,7 @@ const DiagnosisDetailPage = () => {
                                     Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence * 100)}%` : "Unknown"}
                                 </button> */}
                                 <button className="rounded bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-green-800">
-                                    Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence)}%` : "Unknown"}
+                                    Confidence Score: {diagnosis?.confidence ? `${Math.round(diagnosis.confidence * 100)}%` : "Unknown"}
                                 </button>
                             </div>
                         </div>
