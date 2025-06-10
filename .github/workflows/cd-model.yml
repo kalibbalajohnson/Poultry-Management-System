@@ -48,4 +48,5 @@ jobs:
           echo "Running new Docker container..."
           docker run -d -p 8000:8000 --name poultrypal-model-container kalibbalajohnson/poultrypal-model:latest
           docker ps
+          docker logs poultrypal-model-container
           EOF
