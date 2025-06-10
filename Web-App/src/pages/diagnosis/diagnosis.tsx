@@ -107,7 +107,6 @@ function DiagnosisPage() {
             setOpen(false);
         } catch (err) {
             console.error('Error submitting diagnosis:', err);
-            setError('Failed to process diagnosis. Please try again.');
             setLoading(false);
         }
     };
